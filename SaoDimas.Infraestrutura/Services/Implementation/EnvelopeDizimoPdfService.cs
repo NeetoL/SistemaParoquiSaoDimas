@@ -36,7 +36,7 @@ internal sealed class EnvelopeDizimoPdfService(IOptions<ConfiguracaoParoquia> op
 
     /// <summary>
     /// Com a aba fechada (60 mm sobre o verso), só a faixa do verso entre a dobra da base e esta linha fica visível.
-    /// O restante do verso (até a borda da folha) fica coberto pela aba e não recebe conteúdo.
+    /// A tabela de contribuições fica depois desta linha, coberta pela aba; o Pix permanece visível.
     /// </summary>
     public const float LimiteVisivelDoVerso = DobraBase + (DobraBase - DobraFechamento) - DobraFechamento;
 
@@ -118,7 +118,7 @@ internal sealed class EnvelopeDizimoPdfService(IOptions<ConfiguracaoParoquia> op
             Area(camadas.Layer(), AbaLateral + AreaSegura, DobraFechamento + AreaSegura, DobraDireita - AreaSegura, DobraBase - AreaSegura)
                 .Element(frente => ComporFrente(frente, envelope, paroquia));
 
-            Area(camadas.Layer(), AbaLateral + AreaSegura, DobraBase + AreaSegura, DobraDireita - AreaSegura, LimiteVisivelDoVerso - AreaSegura)
+            Area(camadas.Layer(), AbaLateral + AreaSegura, DobraBase + AreaSegura, DobraDireita - AreaSegura, AlturaFolha - AreaSegura)
                 .RotateLayoutClockwise().RotateLayoutClockwise()
                 .Element(verso => ComporVerso(verso, envelope, paroquia));
 
@@ -158,7 +158,31 @@ internal sealed class EnvelopeDizimoPdfService(IOptions<ConfiguracaoParoquia> op
 
             coluna.Item().PaddingVertical(2.5f, Unit.Millimetre).LineHorizontal(0.6f).LineColor(Dourado);
 
-            coluna.Item().PaddingTop(3, Unit.Millimetre).Element(ControleMensal);
+            coluna.Item().PaddingTop(3, Unit.Millimetre).BorderLeft(1.5f).BorderColor(Verde)
+                .Background("#F7F8F6").Padding(4, Unit.Millimetre).Column(dados =>
+                {
+                    dados.Spacing(3, Unit.Millimetre);
+                    Identificacao(dados.Item(), "Dizimista", envelope.Nome);
+                    dados.Item().Row(linha =>
+                    {
+                        linha.Spacing(5, Unit.Millimetre);
+                        Identificacao(linha.RelativeItem(), "Código", envelope.Codigo);
+                        Identificacao(linha.RelativeItem(3), "Comunidade", envelope.Comunidade);
+                    });
+                    dados.Item().Row(linha =>
+                    {
+                        linha.Spacing(5, Unit.Millimetre);
+                        DadoCadastrado(linha.RelativeItem(3), "Endereço", envelope.Endereco);
+                        DadoCadastrado(linha.RelativeItem(), "Aniversário (dia/mês)", envelope.DataNascimento?.ToString("dd/MM", PortuguesBrasil));
+                    });
+                    dados.Item().Row(linha =>
+                    {
+                        linha.Spacing(5, Unit.Millimetre);
+                        DadoCadastrado(linha.RelativeItem(), "CEP", envelope.Cep is { Length: 8 } cep ? $"{cep[..5]}-{cep[5..]}" : envelope.Cep);
+                        DadoCadastrado(linha.RelativeItem(2), "Bairro", envelope.Bairro);
+                        DadoCadastrado(linha.RelativeItem(2), "Telefone", envelope.Telefone);
+                    });
+                });
 
             coluna.Item().ExtendVertical().AlignBottom().AlignCenter().PaddingHorizontal(10, Unit.Millimetre).Text(texto =>
             {
@@ -186,9 +210,9 @@ internal sealed class EnvelopeDizimoPdfService(IOptions<ConfiguracaoParoquia> op
             });
             for (var grupo = 0; grupo < 2; grupo++)
                 foreach (var titulo in TitulosControleMensal)
-                    tabela.Cell().Border(0.5f).BorderColor(Verde).Background(Verde)
+                    tabela.Cell().Border(0.4f).BorderColor("#B9C8BE").Background("#EEF2EE")
                         .Height(5, Unit.Millimetre).AlignMiddle().AlignCenter()
-                        .Text(titulo).FontSize(7.5f).SemiBold().FontColor(Colors.White);
+                        .Text(titulo).FontSize(7.5f).SemiBold().FontColor(TextoSecundario);
             for (var linha = 0; linha < 7; linha++)
                 for (var grupo = 0; grupo < 2; grupo++)
                     foreach (var valor in new[] { linha < 6 ? meses[linha + grupo * 6] : grupo == 1 ? "13º" : "", "", "" })
@@ -240,48 +264,35 @@ internal sealed class EnvelopeDizimoPdfService(IOptions<ConfiguracaoParoquia> op
     }
 
     /// <summary>
-    /// Faixa do verso que continua visível com a aba fechada (junto à base do envelope).
+    /// Verso: controle mensal sob a aba de fechamento e pagamento Pix na faixa visível.
     /// </summary>
     private void ComporVerso(IContainer container, DizimistaIdentificacaoDto envelope, ConfiguracaoParoquia paroquia)
     {
-        container.Row(verso =>
+        container.Column(coluna =>
         {
-            verso.Spacing(4, Unit.Millimetre);
-            verso.RelativeItem().Column(coluna =>
+            // Após a dobra, esta faixa fica integralmente sob a aba de fechamento.
+            coluna.Item().Height(4, Unit.Millimetre).Text("CONTROLE DE CONTRIBUIÇÕES")
+                .FontSize(7).SemiBold().FontColor(TextoSecundario).LetterSpacing(0.06f);
+            coluna.Item().Element(ControleMensal);
+            coluna.Item().ExtendVertical().AlignBottom().Row(verso =>
             {
-                coluna.Item().Height(6, Unit.Millimetre).AlignMiddle().ScaleToFit()
-                    .Text(envelope.Nome).FontSize(12).SemiBold().FontColor(Verde);
-                coluna.Item().PaddingTop(1, Unit.Millimetre).Row(linha =>
+                verso.Spacing(8, Unit.Millimetre);
+                verso.RelativeItem().AlignMiddle().Column(pagamento =>
                 {
-                    linha.Spacing(5, Unit.Millimetre);
-                    DadoCadastrado(linha.RelativeItem(3), "Endereço", envelope.Endereco);
-                    DadoCadastrado(linha.RelativeItem(), "Aniversário (dia/mês)", envelope.DataNascimento?.ToString("dd/MM", PortuguesBrasil));
-                });
-                coluna.Item().PaddingTop(1, Unit.Millimetre).Row(linha =>
-                {
-                    linha.Spacing(5, Unit.Millimetre);
-                    DadoCadastrado(linha.RelativeItem(), "CEP", envelope.Cep is { Length: 8 } cep ? $"{cep[..5]}-{cep[5..]}" : envelope.Cep);
-                    DadoCadastrado(linha.RelativeItem(2), "Bairro", envelope.Bairro);
-                    if (string.IsNullOrWhiteSpace(envelope.Telefone))
-                        CampoComLinha(linha.RelativeItem(2), "Telefone", null);
+                    pagamento.Item().Text("Pagamento via Pix").FontSize(11).SemiBold().FontColor(Roxo);
+                    if (!string.IsNullOrWhiteSpace(paroquia.Telefone))
+                        pagamento.Item().PaddingTop(2, Unit.Millimetre).Text($"Enviar comprovante para {paroquia.Telefone}").FontSize(8).FontColor(TextoSecundario);
                     else
-                        Identificacao(linha.RelativeItem(2), "Telefone", envelope.Telefone);
+                        pagamento.Item().PaddingTop(2, Unit.Millimetre).Text("Consulte a secretaria paroquial para os dados de pagamento e envio do comprovante.").FontSize(8).FontColor(TextoSecundario);
                 });
-                coluna.Item().PaddingTop(1, Unit.Millimetre).Text("Pagamento via Pix").FontSize(9).SemiBold().FontColor(Roxo);
-                if (!string.IsNullOrWhiteSpace(paroquia.Telefone))
-                    coluna.Item().Text($"Enviar comprovante para {paroquia.Telefone}").FontSize(8).FontColor(TextoSecundario);
-                else
-                    coluna.Item().Text("Consulte a secretaria paroquial para os dados de pagamento e envio do comprovante.").FontSize(7.5f).FontColor(TextoSecundario);
-                coluna.Item().ExtendVertical().AlignBottom().Text($"Dizimista nº {envelope.Codigo} • {envelope.Comunidade}").FontSize(7.5f).FontColor(TextoSecundario);
-            });
-            verso.ConstantItem(28, Unit.Millimetre).AlignMiddle().Column(pix =>
-            {
-                pix.Item().Width(28, Unit.Millimetre).Height(28, Unit.Millimetre).Image(_qrPix.Value).FitArea();
-                pix.Item().PaddingTop(1, Unit.Millimetre).AlignCenter().Text("PIX").FontSize(8).SemiBold().FontColor(Roxo);
+                verso.ConstantItem(28, Unit.Millimetre).Column(pix =>
+                {
+                    pix.Item().Width(28, Unit.Millimetre).Height(28, Unit.Millimetre).Image(_qrPix.Value).FitArea();
+                    pix.Item().PaddingTop(1, Unit.Millimetre).AlignCenter().Text("PIX").FontSize(8).SemiBold().FontColor(Roxo);
+                });
             });
         });
     }
-
     private static void ComporAbaDeFechamento(IContainer container, DizimistaIdentificacaoDto envelope, ConfiguracaoParoquia paroquia)
     {
         container.Column(coluna =>
