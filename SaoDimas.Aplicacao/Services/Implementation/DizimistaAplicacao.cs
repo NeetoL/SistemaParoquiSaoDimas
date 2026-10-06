@@ -38,7 +38,7 @@ internal sealed class DizimistaAplicacao(
                 dizimista.Telefone?.Formatado,
                 dizimista.ComunidadeId,
                 dizimista.DataEntrada,
-                dizimista.Status, dizimista.Endereco, dizimista.Cep, dizimista.Bairro, dizimista.DataNascimento);
+                dizimista.Status, dizimista.Endereco, dizimista.Cep, dizimista.Bairro, dizimista.DataNascimento, dizimista.Codigo);
     }
 
     public async Task<Resultado<int>> CadastrarAsync(DadosDizimista dados, CancellationToken cancellationToken)
@@ -57,8 +57,11 @@ internal sealed class DizimistaAplicacao(
             return Resultado<int>.Falha(erroCpf);
         }
 
+        var erroCodigo = await ValidarCodigoAsync(dados.CodigoOriginal, null, null, cancellationToken);
+        if (erroCodigo is not null) return Resultado<int>.Falha(erroCodigo);
+
         var resultado = Dizimista.Criar(
-            dados.Nome, dados.Cpf, dados.Telefone, comunidade, dados.DataEntrada, dados.Status, relogio.GetLocalNow(), dados.Endereco, dados.Cep, dados.Bairro, dados.DataNascimento);
+            dados.Nome, dados.Cpf, dados.Telefone, comunidade, dados.DataEntrada, dados.Status, relogio.GetLocalNow(), dados.Endereco, dados.Cep, dados.Bairro, dados.DataNascimento, dados.CodigoOriginal);
 
         if (!resultado.Sucesso)
         {
@@ -93,8 +96,11 @@ internal sealed class DizimistaAplicacao(
             return Resultado.Falha(erroCpf);
         }
 
+        var erroCodigo = await ValidarCodigoAsync(dados.CodigoOriginal, id, dizimista.Codigo, cancellationToken);
+        if (erroCodigo is not null) return Resultado.Falha(erroCodigo);
+
         var resultado = dizimista.Atualizar(
-            dados.Nome, dados.Cpf, dados.Telefone, comunidade, dados.DataEntrada, dados.Status, relogio.GetLocalNow(), dados.Endereco, dados.Cep, dados.Bairro, dados.DataNascimento);
+            dados.Nome, dados.Cpf, dados.Telefone, comunidade, dados.DataEntrada, dados.Status, relogio.GetLocalNow(), dados.Endereco, dados.Cep, dados.Bairro, dados.DataNascimento, dados.CodigoOriginal);
 
         if (resultado.Sucesso)
         {
@@ -102,6 +108,15 @@ internal sealed class DizimistaAplicacao(
         }
 
         return resultado;
+    }
+
+    private async Task<Erro?> ValidarCodigoAsync(string? codigo, int? ignorarId, string? atual, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(codigo)) return new(nameof(DadosDizimista.CodigoOriginal), "Informe o código do outro sistema.");
+        codigo = codigo.Trim();
+        if (string.Equals(codigo, atual, StringComparison.OrdinalIgnoreCase)) return null;
+        return await dizimistas.ExisteCodigoAsync(codigo, ignorarId, ct)
+            ? new(nameof(DadosDizimista.CodigoOriginal), "Este código já está cadastrado para outro dizimista.") : null;
     }
 
     private static Erro ComunidadeInvalida() =>

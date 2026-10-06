@@ -11,7 +11,7 @@ public sealed record DadosDizimista(
     string? Telefone,
     int ComunidadeId,
     DateOnly DataEntrada,
-    StatusDizimista Status, string? Endereco = null, string? Cep = null, string? Bairro = null, DateOnly? DataNascimento = null);
+    StatusDizimista Status, string? Endereco = null, string? Cep = null, string? Bairro = null, DateOnly? DataNascimento = null, string? CodigoOriginal = null);
 
 public sealed record DizimistaResumoDto(
     int Id,

@@ -17,6 +17,12 @@ internal sealed class DizimistaRepositorio(SaoDimasDbContext contexto) : IDizimi
             cancellationToken);
 
     public void Adicionar(Dizimista dizimista) => contexto.Dizimistas.Add(dizimista);
+    public async Task<bool> ExisteCodigoAsync(string codigo, int? ignorarDizimistaId, CancellationToken cancellationToken)
+    {
+        var registros = await contexto.Dizimistas.AsNoTracking().Where(d => d.Id != ignorarDizimistaId)
+            .Select(d => new { d.Id, d.CodigoOriginal }).ToListAsync(cancellationToken);
+        return registros.Any(d => string.Equals(d.CodigoOriginal ?? Dizimista.FormatarCodigo(d.Id), codigo.Trim(), StringComparison.OrdinalIgnoreCase));
+    }
 
     public Task SalvarAlteracoesAsync(CancellationToken cancellationToken) => contexto.SaveChangesAsync(cancellationToken);
 }

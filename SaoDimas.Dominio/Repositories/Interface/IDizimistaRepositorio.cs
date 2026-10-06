@@ -9,6 +9,8 @@ public interface IDizimistaRepositorio
 
     Task<bool> ExisteCpfAsync(Cpf cpf, int? ignorarDizimistaId, CancellationToken cancellationToken);
 
+    Task<bool> ExisteCodigoAsync(string codigo, int? ignorarDizimistaId, CancellationToken cancellationToken);
+
     void Adicionar(Dizimista dizimista);
 
     Task SalvarAlteracoesAsync(CancellationToken cancellationToken);

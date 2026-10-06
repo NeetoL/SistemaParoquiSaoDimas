@@ -16,5 +16,10 @@ internal sealed class DizimistaJsonRepositorio(SessaoSistemaJson sessao) : IDizi
         return sessao.Dizimistas.Any(d => d.Id != ignorarDizimistaId && d.Cpf == cpf);
     }
     public void Adicionar(Dizimista dizimista) => sessao.Dizimistas.Add(dizimista);
+    public async Task<bool> ExisteCodigoAsync(string codigo, int? ignorarDizimistaId, CancellationToken ct)
+    {
+        await sessao.CarregarAsync(ct);
+        return sessao.Dizimistas.Any(d => d.Id != ignorarDizimistaId && string.Equals(d.Codigo, codigo.Trim(), StringComparison.OrdinalIgnoreCase));
+    }
     public Task SalvarAlteracoesAsync(CancellationToken ct) => sessao.SalvarAsync(ct);
 }

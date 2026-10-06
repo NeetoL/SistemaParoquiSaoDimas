@@ -55,12 +55,12 @@ public sealed class Dizimista
         Comunidade comunidade,
         DateOnly dataEntrada,
         StatusDizimista status,
-        DateTimeOffset agora, string? endereco = null, string? cep = null, string? bairro = null, DateOnly? dataNascimento = null)
+        DateTimeOffset agora, string? endereco = null, string? cep = null, string? bairro = null, DateOnly? dataNascimento = null, string? codigoOriginal = null)
     {
         ArgumentNullException.ThrowIfNull(comunidade);
 
         var dizimista = new Dizimista(string.Empty, agora.UtcDateTime);
-        var resultado = dizimista.Aplicar(nome, cpf, telefone, comunidade, novoVinculo: true, dataEntrada, status, agora, endereco, cep, bairro, dataNascimento);
+        var resultado = dizimista.Aplicar(nome, cpf, telefone, comunidade, novoVinculo: true, dataEntrada, status, agora, endereco, cep, bairro, dataNascimento, codigoOriginal);
 
         return resultado.Sucesso
             ? Resultado<Dizimista>.Ok(dizimista)
@@ -74,11 +74,11 @@ public sealed class Dizimista
         Comunidade comunidade,
         DateOnly dataEntrada,
         StatusDizimista status,
-        DateTimeOffset agora, string? endereco = null, string? cep = null, string? bairro = null, DateOnly? dataNascimento = null)
+        DateTimeOffset agora, string? endereco = null, string? cep = null, string? bairro = null, DateOnly? dataNascimento = null, string? codigoOriginal = null)
     {
         ArgumentNullException.ThrowIfNull(comunidade);
 
-        var resultado = Aplicar(nome, cpf, telefone, comunidade, novoVinculo: comunidade.Id != ComunidadeId, dataEntrada, status, agora, endereco, cep, bairro, dataNascimento);
+        var resultado = Aplicar(nome, cpf, telefone, comunidade, novoVinculo: comunidade.Id != ComunidadeId, dataEntrada, status, agora, endereco, cep, bairro, dataNascimento, codigoOriginal);
 
         if (resultado.Sucesso)
         {
@@ -99,9 +99,12 @@ public sealed class Dizimista
         bool novoVinculo,
         DateOnly dataEntrada,
         StatusDizimista status,
-        DateTimeOffset agora, string? endereco = null, string? cep = null, string? bairro = null, DateOnly? dataNascimento = null)
+        DateTimeOffset agora, string? endereco = null, string? cep = null, string? bairro = null, DateOnly? dataNascimento = null, string? codigoOriginal = null)
     {
         var erros = new List<Erro>();
+        var codigoNormalizado = codigoOriginal?.Trim();
+        if (codigoOriginal is not null && (string.IsNullOrWhiteSpace(codigoNormalizado) || codigoNormalizado.Length > 50 || codigoNormalizado.Any(char.IsWhiteSpace) || codigoNormalizado.Any(char.IsControl)))
+            erros.Add(new Erro(nameof(CodigoOriginal), "Informe um código de até 50 caracteres, sem espaços."));
 
         var nomeNormalizado = Texto.NormalizarEspacos(nome);
         if (nomeNormalizado.Length == 0)
@@ -169,6 +172,7 @@ public sealed class Dizimista
         Bairro = bairroNormalizado.Length == 0 ? null : bairroNormalizado;
         Cep = cepNormalizado.Length == 0 ? null : cepNormalizado;
         DataNascimento = dataNascimento;
+        if (codigoNormalizado is not null) CodigoOriginal = codigoNormalizado;
         Nome = nomeNormalizado;
         Cpf = novoCpf;
         Telefone = novoTelefone;

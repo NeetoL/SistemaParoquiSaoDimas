@@ -22,7 +22,41 @@ public sealed class DizimistaAplicacaoTests
         new(_dizimistas, _comunidades, new ConsultasNaoUsadas(), new RelogioFixo());
 
     private static DadosDizimista Dados(int comunidadeId, string? cpf = null) =>
-        new("João da Silva", cpf, "(11) 98765-4321", comunidadeId, Criar.Hoje, StatusDizimista.Ativo);
+        new("João da Silva", cpf, "(11) 98765-4321", comunidadeId, Criar.Hoje, StatusDizimista.Ativo, CodigoOriginal: "9001");
+
+    [Fact]
+    public async Task Codigo_manual_e_obrigatorio()
+    {
+        var resultado = await CriarAplicacao().CadastrarAsync(Dados(2) with { CodigoOriginal = " " }, CancellationToken.None);
+        Assert.Equal(nameof(DadosDizimista.CodigoOriginal), Assert.Single(resultado.Erros).Campo);
+        Assert.Empty(_dizimistas.Adicionados);
+    }
+
+    [Fact]
+    public async Task Codigo_preserva_zeros_e_bloqueia_repeticao_em_outra_comunidade()
+    {
+        var app = CriarAplicacao();
+        Assert.True((await app.CadastrarAsync(Dados(1) with { CodigoOriginal = " 00Ab7 " }, CancellationToken.None)).Sucesso);
+        Assert.Equal("00Ab7", Assert.Single(_dizimistas.Adicionados).Codigo);
+        var resultado = await app.CadastrarAsync(Dados(2) with { CodigoOriginal = "00ab7" }, CancellationToken.None);
+        Assert.Equal(nameof(DadosDizimista.CodigoOriginal), Assert.Single(resultado.Erros).Campo);
+        Assert.Single(_dizimistas.Adicionados);
+    }
+
+    [Fact]
+    public async Task Edicao_mantem_codigo_proprio_mas_recusa_codigo_de_outra_pessoa()
+    {
+        var pessoa = Criar.Dizimista(10, _comunidades.Todas[0]);
+        var outra = Criar.Dizimista(20, _comunidades.Todas[1]);
+        _dizimistas.Existentes.AddRange([pessoa, outra]);
+        var app = CriarAplicacao();
+        Assert.True((await app.AtualizarAsync(10, Dados(1) with { CodigoOriginal = pessoa.Codigo }, CancellationToken.None)).Sucesso);
+        var codigoAnterior = pessoa.Codigo;
+        var resultado = await app.AtualizarAsync(10, Dados(2) with { CodigoOriginal = outra.Codigo }, CancellationToken.None);
+        Assert.Equal(nameof(DadosDizimista.CodigoOriginal), Assert.Single(resultado.Erros).Campo);
+        Assert.Equal(codigoAnterior, pessoa.Codigo);
+        Assert.Equal(1, pessoa.ComunidadeId);
+    }
 
     [Fact]
     public async Task Dados_do_envelope_sao_salvos_e_retornados_para_edicao()
@@ -121,6 +155,9 @@ public sealed class DizimistaAplicacaoTests
 
         public Task<bool> ExisteCpfAsync(Cpf cpf, int? ignorarDizimistaId, CancellationToken cancellationToken) =>
             Task.FromResult(Existentes.Any(dizimista => dizimista.Cpf == cpf && dizimista.Id != ignorarDizimistaId));
+
+        public Task<bool> ExisteCodigoAsync(string codigo, int? ignorarDizimistaId, CancellationToken cancellationToken) =>
+            Task.FromResult(Existentes.Concat(Adicionados).Any(d => d.Id != ignorarDizimistaId && string.Equals(d.Codigo, codigo, StringComparison.OrdinalIgnoreCase)));
 
         public void Adicionar(Dizimista dizimista) => Adicionados.Add(dizimista);
 

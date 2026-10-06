@@ -75,7 +75,7 @@ public sealed partial class PersistenciaJsonTests
     [Fact] public async Task Planilha_dizimistas_valida_antes_de_importar_e_rejeita_cpf_duplicado()
     {
         using var p=Provider();
-        const string csv="nome;cpf;telefone;comunidadeId;dataEntrada;status;endereco;cep;bairro;dataNascimento\nJoão;12345678909;21999991234;2;2026-01-01;Ativo;Rua A;21775280;Centro;1990-08-19\n";
+        const string csv="nome;cpf;telefone;comunidadeId;dataEntrada;status;endereco;cep;bairro;dataNascimento;codigoOriginal\nJoão;12345678909;21999991234;2;2026-01-01;Ativo;Rua A;21775280;Centro;1990-08-19;9001\n";
         Assert.True((await Requisicao<ICadastrosPlanilhaAplicacao,ResultadoGestao>(p,s=>s.ImportarAsync(csv,false,"admin",Ct))).Sucesso);
         var pagina=await Requisicao<IDizimistaAplicacao,PaginaResultado<DizimistaResumoDto>>(p,s=>s.PesquisarAsync(new(),Ct));Assert.Equal(0,pagina.Total);
         Assert.True((await Requisicao<ICadastrosPlanilhaAplicacao,ResultadoGestao>(p,s=>s.ImportarAsync(csv,true,"admin",Ct))).Sucesso);

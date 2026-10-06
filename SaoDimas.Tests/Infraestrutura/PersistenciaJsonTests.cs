@@ -43,7 +43,7 @@ public sealed partial class PersistenciaJsonTests : IDisposable
         return resultado;
     }
     private static DadosDizimista Dados(string nome = "João da Silva", string? cpf = null) => new(nome, cpf, "(21) 99999-1234", 2,
-        new DateOnly(2026, 1, 1), StatusDizimista.Ativo, "Rua das Flores, 10", "21775-280", "Padre Miguel", new DateOnly(1990, 7, 12));
+        new DateOnly(2026, 1, 1), StatusDizimista.Ativo, "Rua das Flores, 10", "21775-280", "Padre Miguel", new DateOnly(1990, 7, 12), CodigoOriginal: "9001");
 
     [Fact]
     public async Task Codigo_original_sobrevive_a_edicao_e_reinicio_e_aparece_na_busca_e_envelope()
@@ -53,6 +53,8 @@ public sealed partial class PersistenciaJsonTests : IDisposable
             id = (await Requisicao<IDizimistaAplicacao, Resultado<int>>(provider, app => app.CadastrarAsync(Dados(), CancellationToken.None))).Valor;
         var caminho = Path.Combine(_diretorio, "sistema.json");
         var documento = System.Text.Json.Nodes.JsonNode.Parse(await File.ReadAllTextAsync(caminho, TestContext.Current.CancellationToken))!;
+        documento["dizimistas"]!.AsArray().Single(p => p!["id"]!.GetValue<int>() == id)!["codigoOriginal"] = null;
+        await File.WriteAllTextAsync(caminho, documento.ToJsonString(), TestContext.Current.CancellationToken);
         var originais = documento.DeepClone();
         var pessoa = originais["dizimistas"]!.AsArray().Single(p => p!["id"]!.GetValue<int>() == id)!;
         pessoa["codigoOriginal"] = "042";
@@ -69,7 +71,7 @@ public sealed partial class PersistenciaJsonTests : IDisposable
             var texto = string.Concat(pdf.GetPage(1).Letters.Select(l => l.Value));
             Assert.Contains("042", texto, StringComparison.Ordinal);
             Assert.DoesNotContain(SaoDimas.Dominio.Entities.Dizimista.FormatarCodigo(id), texto, StringComparison.Ordinal);
-            Assert.True((await Requisicao<IDizimistaAplicacao, Resultado>(provider, app => app.AtualizarAsync(id, Dados("Maria"), CancellationToken.None))).Sucesso);
+            Assert.True((await Requisicao<IDizimistaAplicacao, Resultado>(provider, app => app.AtualizarAsync(id, Dados("Maria") with { CodigoOriginal = "042" }, CancellationToken.None))).Sucesso);
         }
         using (var provider = Provider())
         {
@@ -143,7 +145,7 @@ public sealed partial class PersistenciaJsonTests : IDisposable
     {
         using var primeiro = Provider(); using var segundo = Provider();
         var tarefas = Enumerable.Range(0, 12).Select(i => Requisicao<IDizimistaAplicacao, Resultado<int>>(i % 2 == 0 ? primeiro : segundo,
-            app => app.CadastrarAsync(Dados($"Pessoa {i}"), CancellationToken.None)));
+            app => app.CadastrarAsync(Dados($"Pessoa {i}") with { CodigoOriginal = $"TESTE-{i}" }, CancellationToken.None)));
         var resultados = await Task.WhenAll(tarefas);
         Assert.All(resultados, r => Assert.True(r.Sucesso));
         Assert.Equal(12, resultados.Select(r => r.Valor).Distinct().Count());
@@ -151,6 +153,21 @@ public sealed partial class PersistenciaJsonTests : IDisposable
         var pagina = await Requisicao<IDizimistaAplicacao, PaginaResultado<DizimistaResumoDto>>(reiniciado,
             app => app.PesquisarAsync(new FiltroDizimistas(), CancellationToken.None));
         Assert.Equal(12, pagina.Itens.Count);
+    }
+
+    [Fact]
+    public async Task Codigo_duplicado_e_recusado_em_duas_instancias_concorrentes()
+    {
+        using var primeiro = Provider(); using var segundo = Provider();
+        var resultados = await Task.WhenAll(new[] { primeiro, segundo }.Select((provider, i) =>
+            Requisicao<IDizimistaAplicacao, Resultado<int>>(provider,
+                app => app.CadastrarAsync(Dados($"Pessoa {i}") with { CodigoOriginal = "0057" }, CancellationToken.None))));
+        Assert.Single(resultados, r => r.Sucesso);
+        Assert.Equal(nameof(DadosDizimista.CodigoOriginal), Assert.Single(Assert.Single(resultados, r => !r.Sucesso).Erros).Campo);
+        using var reiniciado = Provider();
+        var pagina = await Requisicao<IDizimistaAplicacao, PaginaResultado<DizimistaResumoDto>>(reiniciado,
+            app => app.PesquisarAsync(new FiltroDizimistas(), CancellationToken.None));
+        Assert.Equal("0057", Assert.Single(pagina.Itens).Codigo);
     }
 
     [Fact]

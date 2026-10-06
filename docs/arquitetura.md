@@ -201,3 +201,6 @@ vale a última gravação. **Migração para EF Core:** criar as configurações
 Impressão (`ImpressaoTicketService`, QuestPDF): A4 retrato, 12 tickets por folha (2 × 6, 95 × 46 mm), parte do
 cliente + canhoto de controle com o responsável (ou linha para preencher), linhas de corte apenas nas posições
 ocupadas. Lote inteiro ou só uma faixa.
+
+
+O cadastro e a edição exigem o código manual do sistema de origem. A aplicação verifica duplicidade em todas as comunidades, preserva zeros à esquerda e retorna o erro no campo de código. Repetições antigas importadas são preservadas: a edição permite manter o código atual. A persistência JSON serializa as gravações para impedir duplicações simultâneas. O CSV de cadastro exige a coluna codigoOriginal e valida repetições no arquivo e nos registros existentes.

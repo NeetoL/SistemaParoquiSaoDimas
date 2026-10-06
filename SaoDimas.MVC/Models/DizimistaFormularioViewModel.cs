@@ -12,6 +12,11 @@ namespace SaoDimas.MVC.Models;
 /// </summary>
 public sealed class DizimistaFormularioViewModel
 {
+    [Required(ErrorMessage = "Informe o código do outro sistema.")]
+    [StringLength(50, ErrorMessage = "O código deve ter no máximo 50 caracteres.")]
+    [Display(Name = "Código do dizimista")]
+    public string CodigoOriginal { get; set; } = string.Empty;
+
     [Required(ErrorMessage = "Informe o nome.")]
     [StringLength(150, ErrorMessage = "O nome deve ter no máximo 150 caracteres.")]
     [Display(Name = "Nome completo")]
@@ -55,6 +60,7 @@ public sealed class DizimistaFormularioViewModel
     {
         Endereco = dados.Endereco, Cep = dados.Cep, Bairro = dados.Bairro, DataNascimento = dados.DataNascimento,
         Nome = dados.Nome,
+        CodigoOriginal = dados.CodigoOriginal ?? string.Empty,
         Cpf = dados.Cpf,
         Telefone = dados.Telefone,
         ComunidadeId = dados.ComunidadeId,
@@ -66,5 +72,5 @@ public sealed class DizimistaFormularioViewModel
     /// Chamado somente após ModelState válido (campos obrigatórios preenchidos).
     /// </summary>
     public DadosDizimista ParaDados() =>
-        new(Nome, Cpf, Telefone, ComunidadeId!.Value, DataEntrada!.Value, Status!.Value, Endereco, Cep, Bairro, DataNascimento);
+        new(Nome, Cpf, Telefone, ComunidadeId!.Value, DataEntrada!.Value, Status!.Value, Endereco, Cep, Bairro, DataNascimento, CodigoOriginal);
 }
