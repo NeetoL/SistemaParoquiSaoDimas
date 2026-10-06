@@ -84,6 +84,50 @@ $dadosOriginais = Join-Path $raiz 'SaoDimas.MVC\App_Data\sistema.json'
 if (!(Test-Path -LiteralPath $arquivoDados) -and (Test-Path -LiteralPath $dadosOriginais)) {
     Copy-Item -LiteralPath $dadosOriginais -Destination $arquivoDados
 }
+# Inclui os cadastros iniciais ausentes e preserva os registros existentes.
+$cadastrosIniciais = Join-Path $raiz 'dados-iniciais\cadastros.json'
+if (Test-Path -LiteralPath $cadastrosIniciais) {
+    $bloqueio = [IO.File]::Open($arquivoDados + '.lock', [IO.FileMode]::OpenOrCreate, [IO.FileAccess]::ReadWrite, [IO.FileShare]::None)
+    try {
+        $origem = Get-Content -LiteralPath $cadastrosIniciais -Raw -Encoding UTF8 | ConvertFrom-Json
+        if ($origem.versao -ne 1 -or !$origem.comunidades -or !$origem.dizimistas) { throw 'Dados iniciais invalidos.' }
+        if (!(Test-Path -LiteralPath $arquivoDados)) {
+            Copy-Item -LiteralPath $cadastrosIniciais -Destination $arquivoDados
+            Write-Host ($origem.dizimistas.Count.ToString() + ' cadastros iniciais incluidos.')
+        } else {
+            $atual = Get-Content -LiteralPath $arquivoDados -Raw -Encoding UTF8 | ConvertFrom-Json
+            if ($atual.versao -ne 1) { throw 'Formato dos dados atuais nao reconhecido.' }
+            $adicionados = 0
+            foreach ($comunidade in $origem.comunidades) {
+                if (!($atual.comunidades | Where-Object { $_.id -eq $comunidade.id })) { $atual.comunidades = @($atual.comunidades) + @($comunidade) }
+            }
+            foreach ($pessoa in $origem.dizimistas) {
+                $existe = @($atual.dizimistas | Where-Object {
+                    $_.nome -eq $pessoa.nome -and $_.comunidadeId -eq $pessoa.comunidadeId -and
+                    (($_.id -eq $pessoa.id) -or ($_.telefone -eq $pessoa.telefone -and $_.endereco -eq $pessoa.endereco))
+                })
+                if ($existe.Count -gt 0) { continue }
+                if ($atual.dizimistas | Where-Object { $_.id -eq $pessoa.id }) {
+                    $maiorId = ($atual.dizimistas | Measure-Object -Property id -Maximum).Maximum
+                    $pessoa.id = [int][Math]::Max($atual.sequenciaDizimista, $maiorId) + 1
+                }
+                $atual.dizimistas = @($atual.dizimistas) + @($pessoa)
+                $atual.sequenciaDizimista = [int][Math]::Max($atual.sequenciaDizimista, $pessoa.id)
+                $adicionados++
+            }
+            if ($adicionados -gt 0) {
+                $pastaBackups = Join-Path $dados 'backups'
+                New-Item -ItemType Directory -Path $pastaBackups -Force | Out-Null
+                $backup = Join-Path $pastaBackups ('antes-cadastros-' + (Get-Date -Format 'yyyyMMdd-HHmmss-fff') + '.json')
+                $temporario = $arquivoDados + '.' + [Guid]::NewGuid().ToString('N') + '.tmp'
+                [IO.File]::WriteAllText($temporario, ($atual | ConvertTo-Json -Depth 100), [Text.UTF8Encoding]::new($false))
+                try { [IO.File]::Replace($temporario, $arquivoDados, $backup) }
+                finally { if (Test-Path -LiteralPath $temporario) { Remove-Item -LiteralPath $temporario } }
+                Write-Host ($adicionados.ToString() + ' dizimistas incluidos; cadastros anteriores preservados.')
+            }
+        }
+    } finally { $bloqueio.Dispose() }
+}
 # Uma nova execucao nunca substitui cadastros ou backups existentes em DADOS.
 $cliente = New-Object Net.Sockets.TcpClient
 try { $cliente.Connect('127.0.0.1', $porta); $ocupada = $true } catch { $ocupada = $false } finally { $cliente.Dispose() }

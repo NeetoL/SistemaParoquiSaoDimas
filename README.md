@@ -114,7 +114,7 @@ cd SistemaParoquiSaoDimas
 
 Na primeira preparação, o BAT baixa **.NET SDK 10** e **Node.js LTS 22**, instala as ferramentas na pasta do projeto, compila os arquivos da interface e publica o aplicativo com runtime incluído. Essa etapa exige internet. As próximas execuções usam a publicação existente.
 
-Os cadastros reais não são versionados e não acompanham um clone. Para mudar de computador mantendo as informações, transfira também a pasta de dados correspondente.
+Os **526 cadastros iniciais de dizimistas** e suas comunidades acompanham o repositório em `dados-iniciais/cadastros.json`. O inicializador os inclui em uma instalação nova ou acrescenta os ausentes em uma instalação existente, preservando os registros atuais e criando uma cópia antes da alteração. Contas, auditoria e movimentações do computador de origem não fazem parte desse arquivo. Para transferir também o histórico de uso, copie a pasta `DADOS`.
 
 → [Guia completo de instalação e operação no Windows](docs/instalacao-windows.md)
 

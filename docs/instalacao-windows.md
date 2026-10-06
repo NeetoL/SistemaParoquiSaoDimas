@@ -21,3 +21,9 @@ Downloads do Node sao verificados por SHA-256 contra o manifesto oficial. Falhas
 SAODIMAS_PORTA permite escolher outra porta, de 1024 a 65535. SAODIMAS_SEM_NAVEGADOR=1 evita abrir o navegador em verificacoes automatizadas.
 
 Validado: sintaxe PowerShell, pacote self-contained com DOTNET_ROOT apontando para diretorio inexistente, duas execucoes consecutivas, CSS estatico, autenticacao, dashboard e geracao de envelope PDF. O fluxo de download/instalacao numa maquina Windows limpa nao foi executado nesta maquina; o pacote pronto dispensa esse fluxo.
+
+## Cadastros incluidos no repositorio
+
+A pasta dados-iniciais contem os 526 cadastros e comunidades. INICIAR.bat copia esses dados na primeira inicializacao ou acrescenta os ausentes quando ja existe DADOS/sistema.json. Uma copia anterior e salva em DADOS/backups antes da inclusao. Os registros ja existentes, contas e movimentacoes permanecem preservados. Reexecutar nao duplica os cadastros. Se a aplicacao estiver gravando no instante da importacao, aguarde e execute novamente.
+
+A conta inicial e criada normalmente pelo aplicativo. O arquivo de cadastros publicado nao inclui senhas, usuarios, auditoria ou movimentacoes do computador de origem.
