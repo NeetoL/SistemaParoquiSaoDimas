@@ -158,14 +158,6 @@ internal sealed class EnvelopeDizimoPdfService(IOptions<ConfiguracaoParoquia> op
 
             coluna.Item().PaddingVertical(2.5f, Unit.Millimetre).LineHorizontal(0.6f).LineColor(Dourado);
 
-            // Dados pré-preenchidos: texto em destaque, sem linha (diferente dos campos para preencher à mão).
-            coluna.Item().BorderLeft(1.5f).BorderColor(Verde).Background("#F3F7F4").PaddingVertical(1, Unit.Millimetre).PaddingHorizontal(3, Unit.Millimetre).Row(identificacao =>
-            {
-                identificacao.Spacing(4, Unit.Millimetre);
-                Identificacao(identificacao.RelativeItem(1.5f), "Código", envelope.Codigo);
-                Identificacao(identificacao.RelativeItem(3.8f), "Comunidade", envelope.Comunidade);
-            });
-
             coluna.Item().PaddingTop(3, Unit.Millimetre).Element(ControleMensal);
 
             coluna.Item().ExtendVertical().AlignBottom().AlignCenter().PaddingHorizontal(10, Unit.Millimetre).Text(texto =>

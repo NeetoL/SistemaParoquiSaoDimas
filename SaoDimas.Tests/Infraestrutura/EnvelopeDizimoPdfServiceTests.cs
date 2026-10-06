@@ -79,14 +79,14 @@ public sealed class EnvelopeDizimoPdfServiceTests
 
         Assert.Equal(4, pdf.NumberOfPages);
         Assert.Contains(SemEspacos(Matriz.Nome), SemEspacos(LetrasNaFaixa(pdf.GetPage(1), Molde.DobraBase, Molde.LimiteVisivelDoVerso)), StringComparison.Ordinal);
-        Assert.Contains("Capela Santa Teresinha", Texto(pdf.GetPage(2)), StringComparison.Ordinal);
-        Assert.Contains("Capela Santo Inácio", Texto(pdf.GetPage(3)), StringComparison.Ordinal);
-        Assert.Contains("Capela Santo Expedito", Texto(pdf.GetPage(4)), StringComparison.Ordinal);
+        Assert.Contains(SemEspacos("Capela Santa Teresinha"), SemEspacos(LetrasNaFaixa(pdf.GetPage(2), Molde.DobraBase, Molde.LimiteVisivelDoVerso)), StringComparison.Ordinal);
+        Assert.Contains(SemEspacos("Capela Santo Inácio"), SemEspacos(LetrasNaFaixa(pdf.GetPage(3), Molde.DobraBase, Molde.LimiteVisivelDoVerso)), StringComparison.Ordinal);
+        Assert.Contains(SemEspacos("Capela Santo Expedito"), SemEspacos(LetrasNaFaixa(pdf.GetPage(4), Molde.DobraBase, Molde.LimiteVisivelDoVerso)), StringComparison.Ordinal);
     }
 
     [Theory]
     [MemberData(nameof(Dizimistas))]
-    public void Nome_fica_no_verso_com_pix_e_frente_mantem_controle_mensal(DizimistaIdentificacaoDto dizimista)
+    public void Identificacao_completa_fica_no_verso_com_pix_e_frente_mantem_controle_mensal(DizimistaIdentificacaoDto dizimista)
     {
         using var pdf = PdfDocument.Open(CriarServico().Gerar([dizimista]));
         var frente = TextoNaFaixa(pdf.GetPage(1), Molde.DobraFechamento, Molde.DobraBase);
@@ -96,8 +96,12 @@ public sealed class EnvelopeDizimoPdfServiceTests
         Assert.DoesNotContain(SemEspacos(dizimista.Nome), SemEspacos(LetrasNaFaixa(pdf.GetPage(1), Molde.DobraFechamento, Molde.DobraBase)), StringComparison.Ordinal);
         foreach (var removido in new[] { "Forma de contribuição", "Dinheiro", "Transferência", "Outro" })
             Assert.DoesNotContain(removido, Texto(pdf.GetPage(1)), StringComparison.Ordinal);
-        Assert.Contains(dizimista.Codigo, frente, StringComparison.Ordinal);
-        Assert.Contains(dizimista.Comunidade, frente, StringComparison.Ordinal);
+        var verso = SemEspacos(LetrasNaFaixa(pdf.GetPage(1), Molde.DobraBase, Molde.LimiteVisivelDoVerso));
+        Assert.Contains(dizimista.Codigo, verso, StringComparison.Ordinal);
+        Assert.Contains(SemEspacos(dizimista.Comunidade), verso, StringComparison.Ordinal);
+        Assert.DoesNotContain(dizimista.Codigo, frente, StringComparison.Ordinal);
+        Assert.DoesNotContain("CÓDIGO", frente, StringComparison.Ordinal);
+        Assert.DoesNotContain("COMUNIDADE", frente, StringComparison.Ordinal);
         foreach (var esperado in new[] { dizimista.Comunidade.ToUpper(System.Globalization.CultureInfo.GetCultureInfo("pt-BR")), "MEU DÍZIMO", "MÊS", "DATA", "VALOR", "JAN", "FEV", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET", "OUT", "NOV", "DEZ", "13º", "2Cor 9,7" })
         {
             Assert.Contains(esperado, frente, StringComparison.Ordinal);
@@ -182,7 +186,7 @@ public sealed class EnvelopeDizimoPdfServiceTests
             Endereco = "Rua das Flores, 10", Cep = "21775280", Bairro = "Padre Miguel",
             DataNascimento = new DateOnly(1987, 7, 12)
         }]));
-        var texto = SemEspacos(string.Concat(pdf.GetPage(1).Letters.Select(letra => letra.Value)));
+        var texto = SemEspacos(LetrasNaFaixa(pdf.GetPage(1), Molde.DobraBase, Molde.LimiteVisivelDoVerso));
         foreach (var esperado in new[] { "RuadasFlores,10", "21775-280", "PadreMiguel", "12/07" })
             Assert.Contains(esperado, texto, StringComparison.Ordinal);
         Assert.DoesNotContain("1987", texto, StringComparison.Ordinal);
