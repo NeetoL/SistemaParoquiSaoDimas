@@ -83,6 +83,9 @@ internal sealed class EnvelopeDizimoPdfService(IOptions<ConfiguracaoParoquia> op
     private readonly Lazy<Image> _santaTeresinha = new(() =>
         Image.FromFile(Path.Combine(ambiente.ContentRootPath, "wwwroot/img/santa-teresinha.png")));
 
+    private readonly Lazy<Image> _saoDimas = new(() =>
+        Image.FromFile(Path.Combine(ambiente.ContentRootPath, "wwwroot/img/sao-dimas.png")));
+
     public byte[] Gerar(IReadOnlyList<DizimistaIdentificacaoDto> envelopes)
     {
         ArgumentNullException.ThrowIfNull(envelopes);
@@ -152,7 +155,8 @@ internal sealed class EnvelopeDizimoPdfService(IOptions<ConfiguracaoParoquia> op
         var santoInacio = string.Equals(envelope.Comunidade.Trim(), "Capela Santo Inácio", StringComparison.OrdinalIgnoreCase)
             || string.Equals(envelope.Comunidade.Trim(), "Capela Santo Inácio de Loyola", StringComparison.OrdinalIgnoreCase);
         var santaTeresinha = string.Equals(envelope.Comunidade.Trim(), "Capela Santa Teresinha", StringComparison.OrdinalIgnoreCase);
-        var imagemSanto = santoExpedito ? _santoExpedito : santoInacio ? _santoInacio : santaTeresinha ? _santaTeresinha : null;
+        var saoDimas = string.Equals(envelope.Comunidade.Trim(), "Paróquia São Dimas", StringComparison.OrdinalIgnoreCase);
+        var imagemSanto = santoExpedito ? _santoExpedito : santoInacio ? _santoInacio : santaTeresinha ? _santaTeresinha : saoDimas ? _saoDimas : null;
         container.Column(coluna =>
         {
             coluna.Item().Height(imagemSanto is not null ? 30 : 24, Unit.Millimetre).Row(cabecalho =>

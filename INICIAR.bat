@@ -134,7 +134,7 @@ if (!(Test-Path -LiteralPath $executavel) -or ($versaoCodigo -and $versaoCodigo 
 New-Item -ItemType Directory -Path $dados, $logs -Force | Out-Null
 # Repara imagens de documentos numa publicacao existente, sem alterar os originais.
 $recursosReparados = $false
-foreach ($nomeImagem in @('dizimo-expressao-fe.jpeg', 'pix-qrcode.png', 'santo-expedito.png', 'santo-inacio.png', 'santa-teresinha.png')) {
+foreach ($nomeImagem in @('dizimo-expressao-fe.jpeg', 'pix-qrcode.png', 'santo-expedito.png', 'santo-inacio.png', 'santa-teresinha.png', 'sao-dimas.png')) {
     $fonteImagem = Join-Path $raiz ('SaoDimas.MVC\wwwroot\src\marca\' + $nomeImagem)
     $destinoImagem = Join-Path $aplicacao ('wwwroot\img\' + $nomeImagem)
     if (Test-Path -LiteralPath $fonteImagem) {

@@ -105,6 +105,7 @@ await copiar(join(wwwroot, "src", "marca", "pix-qrcode.png"), join(wwwroot, "img
 await copiar(join(wwwroot, "src", "marca", "santo-expedito.png"), join(wwwroot, "img", "santo-expedito.png"));
 await copiar(join(wwwroot, "src", "marca", "santo-inacio.png"), join(wwwroot, "img", "santo-inacio.png"));
 await copiar(join(wwwroot, "src", "marca", "santa-teresinha.png"), join(wwwroot, "img", "santa-teresinha.png"));
+await copiar(join(wwwroot, "src", "marca", "sao-dimas.png"), join(wwwroot, "img", "sao-dimas.png"));
 await copiar(
   join(raiz, "node_modules", "@fontsource-variable", "rubik", "files", "rubik-latin-wght-normal.woff2"),
   join(wwwroot, "fonts", "rubik-latin-wght-normal.woff2")
