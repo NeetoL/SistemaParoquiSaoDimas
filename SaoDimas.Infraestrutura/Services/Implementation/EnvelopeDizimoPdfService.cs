@@ -59,7 +59,6 @@ internal sealed class EnvelopeDizimoPdfService(IOptions<ConfiguracaoParoquia> op
     private static readonly Color TextoSecundario = Color.FromHex("#56605A");
     private static readonly Color Linha = Color.FromHex("#8A948E");
 
-    private static readonly string[] FormasContribuicao = ["Dinheiro", "PIX", "Transferência", "Outro"];
     private static readonly string[] TitulosControleMensal = ["MÊS", "DATA", "VALOR"];
     private static readonly CultureInfo PortuguesBrasil = CultureInfo.GetCultureInfo("pt-BR");
     private static readonly string Guias = GerarGuiasSvg();
@@ -163,12 +162,9 @@ internal sealed class EnvelopeDizimoPdfService(IOptions<ConfiguracaoParoquia> op
             coluna.Item().BorderLeft(1.5f).BorderColor(Verde).Background("#F3F7F4").PaddingVertical(1, Unit.Millimetre).PaddingHorizontal(3, Unit.Millimetre).Row(identificacao =>
             {
                 identificacao.Spacing(4, Unit.Millimetre);
-                Identificacao(identificacao.RelativeItem(5), "Dizimista", envelope.Nome);
                 Identificacao(identificacao.RelativeItem(1.5f), "Código", envelope.Codigo);
                 Identificacao(identificacao.RelativeItem(3.8f), "Comunidade", envelope.Comunidade);
             });
-
-            coluna.Item().PaddingTop(5, Unit.Millimetre).Element(FormasDeContribuicao);
 
             coluna.Item().PaddingTop(3, Unit.Millimetre).Element(ControleMensal);
 
@@ -251,28 +247,6 @@ internal sealed class EnvelopeDizimoPdfService(IOptions<ConfiguracaoParoquia> op
         });
     }
 
-    private static void FormasDeContribuicao(IContainer container)
-    {
-        container.Column(coluna =>
-        {
-            coluna.Item().Text("Forma de contribuição").FontSize(8).SemiBold().FontColor(TextoSecundario);
-            coluna.Item().Height(AlturaLinhaEscrita, Unit.Millimetre).AlignBottom().PaddingBottom(0.5f, Unit.Millimetre).Row(linha =>
-            {
-                linha.Spacing(3.5f, Unit.Millimetre);
-                foreach (var forma in FormasContribuicao)
-                {
-                    linha.AutoItem().Row(opcao =>
-                    {
-                        // Caixa desenhada (não um caractere): imprime igual em qualquer impressora.
-                        // Altura aplicada depois do alinhamento: antes, a caixa vazia colapsava em um traço.
-                        opcao.ConstantItem(4, Unit.Millimetre).AlignMiddle().Height(4, Unit.Millimetre).Border(0.75f).BorderColor(Texto);
-                        opcao.AutoItem().PaddingLeft(1.5f, Unit.Millimetre).AlignMiddle().Text(forma).FontSize(9);
-                    });
-                }
-            });
-        });
-    }
-
     /// <summary>
     /// Faixa do verso que continua visível com a aba fechada (junto à base do envelope).
     /// </summary>
@@ -283,7 +257,8 @@ internal sealed class EnvelopeDizimoPdfService(IOptions<ConfiguracaoParoquia> op
             verso.Spacing(4, Unit.Millimetre);
             verso.RelativeItem().Column(coluna =>
             {
-                coluna.Item().Text("DADOS DO DIZIMISTA").FontSize(9).Bold().FontColor(Verde).LetterSpacing(0.08f);
+                coluna.Item().Height(6, Unit.Millimetre).AlignMiddle().ScaleToFit()
+                    .Text(envelope.Nome).FontSize(12).SemiBold().FontColor(Verde);
                 coluna.Item().PaddingTop(1, Unit.Millimetre).Row(linha =>
                 {
                     linha.Spacing(5, Unit.Millimetre);
@@ -300,7 +275,7 @@ internal sealed class EnvelopeDizimoPdfService(IOptions<ConfiguracaoParoquia> op
                     else
                         Identificacao(linha.RelativeItem(2), "Telefone", envelope.Telefone);
                 });
-                coluna.Item().PaddingTop(2, Unit.Millimetre).Text("Pagamento via Pix").FontSize(9).SemiBold().FontColor(Roxo);
+                coluna.Item().PaddingTop(1, Unit.Millimetre).Text("Pagamento via Pix").FontSize(9).SemiBold().FontColor(Roxo);
                 if (!string.IsNullOrWhiteSpace(paroquia.Telefone))
                     coluna.Item().Text($"Enviar comprovante para {paroquia.Telefone}").FontSize(8).FontColor(TextoSecundario);
                 else
