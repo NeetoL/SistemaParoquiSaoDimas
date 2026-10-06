@@ -179,7 +179,7 @@ public sealed class DizimistaAplicacaoTests
         public Task<IReadOnlyList<DizimistaIdentificacaoDto>> ListarIdentificacoesAsync(IReadOnlyCollection<int> ids, CancellationToken cancellationToken) =>
             throw new NotSupportedException();
 
-        public Task<IReadOnlyList<DizimistaIdentificacaoDto>> ListarIdentificacoesAtivosDaComunidadeAsync(int comunidadeId, CancellationToken cancellationToken) =>
+        public Task<IReadOnlyList<DizimistaIdentificacaoDto>> ListarIdentificacoesAtivosAsync(int? comunidadeId, CancellationToken cancellationToken) =>
             throw new NotSupportedException();
     }
 }

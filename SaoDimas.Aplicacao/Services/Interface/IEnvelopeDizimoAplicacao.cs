@@ -12,6 +12,8 @@ public interface IEnvelopeDizimoAplicacao
 
     Task<Resultado<ArquivoPdf>> GerarAsync(int dizimistaId, CancellationToken cancellationToken);
 
+    Task<Resultado<ArquivoPdf>> GerarTodosAtivosAsync(CancellationToken cancellationToken);
+
     /// <summary>
     /// Um envelope por folha para cada dizimista selecionado (ordenados por nome).
     /// </summary>

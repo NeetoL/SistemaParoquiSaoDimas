@@ -14,6 +14,16 @@ internal sealed class EnvelopeDizimoAplicacao(
     IComunidadeRepositorio comunidades,
     IEnvelopeDizimoPdfService pdf) : IEnvelopeDizimoAplicacao
 {
+    public async Task<Resultado<ArquivoPdf>> GerarTodosAtivosAsync(CancellationToken cancellationToken)
+    {
+        var ativos = await dizimistas.ListarIdentificacoesAtivosAsync(null, cancellationToken);
+        if (ativos.Count == 0)
+            return Resultado<ArquivoPdf>.Falha(new Erro(string.Empty, "Não há dizimistas ativos para gerar envelopes."));
+
+        cancellationToken.ThrowIfCancellationRequested();
+        return Resultado<ArquivoPdf>.Ok(new ArquivoPdf(pdf.Gerar(ativos), $"envelopes-dizimo-todos-ativos-{ativos.Count}.pdf"));
+    }
+
     public async Task<Resultado<ArquivoPdf>> GerarAsync(int dizimistaId, CancellationToken cancellationToken)
     {
         var encontrados = await dizimistas.ListarIdentificacoesAsync([dizimistaId], cancellationToken);
@@ -59,7 +69,7 @@ internal sealed class EnvelopeDizimoAplicacao(
             return Resultado<ArquivoPdf>.Falha(Erro.NaoEncontrado("Comunidade não encontrada."));
         }
 
-        var ativos = await dizimistas.ListarIdentificacoesAtivosDaComunidadeAsync(comunidadeId, cancellationToken);
+        var ativos = await dizimistas.ListarIdentificacoesAtivosAsync(comunidadeId, cancellationToken);
         if (ativos.Count == 0)
         {
             return Resultado<ArquivoPdf>.Falha(new Erro(string.Empty, $"Não há dizimistas ativos em {comunidade.NomeCompleto}."));

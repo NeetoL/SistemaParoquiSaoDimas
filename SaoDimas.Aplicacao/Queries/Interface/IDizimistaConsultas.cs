@@ -17,7 +17,7 @@ public interface IDizimistaConsultas
     Task<IReadOnlyList<DizimistaIdentificacaoDto>> ListarIdentificacoesAsync(IReadOnlyCollection<int> ids, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Nome, código e comunidade dos dizimistas ativos da comunidade, ordenados por nome.
+    /// Dados dos dizimistas ativos, ordenados por nome. Comunidade nula inclui todas.
     /// </summary>
-    Task<IReadOnlyList<DizimistaIdentificacaoDto>> ListarIdentificacoesAtivosDaComunidadeAsync(int comunidadeId, CancellationToken cancellationToken);
+    Task<IReadOnlyList<DizimistaIdentificacaoDto>> ListarIdentificacoesAtivosAsync(int? comunidadeId, CancellationToken cancellationToken);
 }

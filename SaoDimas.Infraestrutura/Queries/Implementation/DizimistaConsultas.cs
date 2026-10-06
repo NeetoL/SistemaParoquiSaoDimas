@@ -86,11 +86,11 @@ internal sealed class DizimistaConsultas(SaoDimasDbContext contexto) : IDizimist
             contexto.Dizimistas.AsNoTracking().Where(dizimista => ids.Contains(dizimista.Id)), cancellationToken);
     }
 
-    public Task<IReadOnlyList<DizimistaIdentificacaoDto>> ListarIdentificacoesAtivosDaComunidadeAsync(
-        int comunidadeId, CancellationToken cancellationToken) =>
+    public Task<IReadOnlyList<DizimistaIdentificacaoDto>> ListarIdentificacoesAtivosAsync(
+        int? comunidadeId, CancellationToken cancellationToken) =>
         ListarIdentificacoesAsync(
             contexto.Dizimistas.AsNoTracking()
-                .Where(dizimista => dizimista.ComunidadeId == comunidadeId && dizimista.Status == StatusDizimista.Ativo),
+                .Where(dizimista => (!comunidadeId.HasValue || dizimista.ComunidadeId == comunidadeId) && dizimista.Status == StatusDizimista.Ativo),
             cancellationToken);
 
     /// <summary>

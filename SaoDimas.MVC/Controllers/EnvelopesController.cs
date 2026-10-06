@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using SaoDimas.Aplicacao.Dtos;
 using SaoDimas.Aplicacao.Services.Interface;
 using SaoDimas.Dominio;
+using SaoDimas.MVC.Models;
 
 namespace SaoDimas.MVC.Controllers;
 
@@ -15,6 +16,18 @@ public sealed class EnvelopesController(
     IDizimistaAplicacao dizimistas,
     IEnvelopeDizimoAplicacao envelopes) : Controller
 {
+    [HttpGet("Envelopes/TodosAtivos")]
+    public async Task<IActionResult> TodosAtivos(CancellationToken cancellationToken)
+    {
+        var resultado = await envelopes.GerarTodosAtivosAsync(cancellationToken);
+        if (!resultado.Sucesso)
+        {
+            TempData[MensagemTempData.Erro] = string.Join(" ", resultado.Erros.Select(e => e.Mensagem));
+            return RedirectToAction("Index", "Dizimistas");
+        }
+        return Arquivo(resultado, baixar: true);
+    }
+
     [HttpGet("{dizimistaId:int}/Envelope")]
     public async Task<IActionResult> Preparar(int dizimistaId, CancellationToken cancellationToken)
     {

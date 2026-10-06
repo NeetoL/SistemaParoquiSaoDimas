@@ -156,6 +156,22 @@ public sealed partial class PersistenciaJsonTests : IDisposable
     }
 
     [Fact]
+    public async Task Consulta_global_de_envelopes_inclui_apenas_ativos_de_todas_as_comunidades()
+    {
+        using var provider = Provider();
+        foreach (var dados in new[] {
+            Dados("Zelia") with { ComunidadeId = 1, CodigoOriginal = "A1" },
+            Dados("Ana") with { ComunidadeId = 2, CodigoOriginal = "A2" },
+            Dados("Inativo") with { ComunidadeId = 3, CodigoOriginal = "A3", Status = StatusDizimista.Inativo } })
+            Assert.True((await Requisicao<IDizimistaAplicacao, Resultado<int>>(provider,
+                app => app.CadastrarAsync(dados, CancellationToken.None))).Sucesso);
+        var ativos = await Requisicao<SaoDimas.Aplicacao.Queries.Interface.IDizimistaConsultas, IReadOnlyList<DizimistaIdentificacaoDto>>(provider,
+            consulta => consulta.ListarIdentificacoesAtivosAsync(null, CancellationToken.None));
+        Assert.Equal(["Ana", "Zelia"], ativos.Select(d => d.Nome));
+        Assert.Equal(["A2", "A1"], ativos.Select(d => d.Codigo));
+    }
+
+    [Fact]
     public async Task Codigo_duplicado_e_recusado_em_duas_instancias_concorrentes()
     {
         using var primeiro = Provider(); using var segundo = Provider();

@@ -25,6 +25,9 @@
 }
 
 @section Acoes {
+    <a asp-controller="Envelopes" asp-action="TodosAtivos" class="btn btn-outline" title="Baixar um PDF com todos os dizimistas ativos de todas as comunidades, independentemente dos filtros.">
+        <svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#mail" /></svg>Envelopes de todos os ativos
+    </a>
     <a href="/Cadastros/Importar" class="btn btn-outline">Importar planilha</a>
     <a href="/Cadastros/Exportar" class="btn btn-outline">Exportar CSV</a>
     <a asp-action="Novo" class="btn btn-primary">

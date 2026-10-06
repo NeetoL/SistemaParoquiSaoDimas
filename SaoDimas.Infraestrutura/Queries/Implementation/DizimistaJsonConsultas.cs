@@ -48,10 +48,10 @@ internal sealed class DizimistaJsonConsultas(SessaoSistemaJson sessao) : IDizimi
         await sessao.CarregarAsync(ct);
         return Identificacoes(sessao.Dizimistas.Where(d => ids.Contains(d.Id)));
     }
-    public async Task<IReadOnlyList<DizimistaIdentificacaoDto>> ListarIdentificacoesAtivosDaComunidadeAsync(int id, CancellationToken ct)
+    public async Task<IReadOnlyList<DizimistaIdentificacaoDto>> ListarIdentificacoesAtivosAsync(int? id, CancellationToken ct)
     {
         await sessao.CarregarAsync(ct);
-        return Identificacoes(sessao.Dizimistas.Where(d => d.ComunidadeId == id && d.Status == StatusDizimista.Ativo));
+        return Identificacoes(sessao.Dizimistas.Where(d => (!id.HasValue || d.ComunidadeId == id) && d.Status == StatusDizimista.Ativo));
     }
     private List<DizimistaIdentificacaoDto> Identificacoes(IEnumerable<Dizimista> consulta) => consulta.OrderBy(d => d.Nome, Comparador).ThenBy(d => d.Id)
         .Select(d => new DizimistaIdentificacaoDto(d.Id, d.Codigo, d.Nome, Comunidade(d).NomeCompleto, d.Telefone?.Formatado,

@@ -23,6 +23,33 @@ public sealed class EnvelopeDizimoAplicacaoTests
         _pdf);
 
     [Fact]
+    public async Task Todos_ativos_gera_um_documento_com_todas_as_comunidades()
+    {
+        var resultado = await CriarAplicacao().GerarTodosAtivosAsync(CancellationToken.None);
+        Assert.True(resultado.Sucesso);
+        Assert.Equal([Conceicao, Maria], Assert.Single(_pdf.Chamadas));
+        Assert.Equal("envelopes-dizimo-todos-ativos-2.pdf", resultado.Valor.NomeArquivo);
+    }
+
+    [Fact]
+    public async Task Todos_ativos_inclui_mais_de_500_sem_truncar()
+    {
+        var ativos = Enumerable.Range(1, 522).Select(i => new DizimistaIdentificacaoDto(i, i.ToString(System.Globalization.CultureInfo.InvariantCulture), $"Pessoa {i:D4}", "Capela teste")).ToArray();
+        var app = new EnvelopeDizimoAplicacao(new DizimistasFake(ativos, new() { [1] = ativos }), new ComunidadesFake(), _pdf);
+        var resultado = await app.GerarTodosAtivosAsync(CancellationToken.None);
+        Assert.True(resultado.Sucesso);
+        Assert.Equal(522, Assert.Single(_pdf.Chamadas).Count);
+    }
+
+    [Fact]
+    public async Task Todos_ativos_sem_cadastros_nao_gera_documento_vazio()
+    {
+        var app = new EnvelopeDizimoAplicacao(new DizimistasFake([], new()), new ComunidadesFake(), _pdf);
+        Assert.False((await app.GerarTodosAtivosAsync(CancellationToken.None)).Sucesso);
+        Assert.Empty(_pdf.Chamadas);
+    }
+
+    [Fact]
     public async Task Envelope_individual_usa_os_dados_do_backend()
     {
         var resultado = await CriarAplicacao().GerarAsync(3, CancellationToken.None);
@@ -111,8 +138,8 @@ public sealed class EnvelopeDizimoAplicacaoTests
             Task.FromResult<IReadOnlyList<DizimistaIdentificacaoDto>>(
                 dizimistas.Where(dizimista => ids.Contains(dizimista.Id)).OrderBy(dizimista => dizimista.Nome, StringComparer.Ordinal).ToList());
 
-        public Task<IReadOnlyList<DizimistaIdentificacaoDto>> ListarIdentificacoesAtivosDaComunidadeAsync(int comunidadeId, CancellationToken cancellationToken) =>
-            Task.FromResult<IReadOnlyList<DizimistaIdentificacaoDto>>(ativosPorComunidade.GetValueOrDefault(comunidadeId, []));
+        public Task<IReadOnlyList<DizimistaIdentificacaoDto>> ListarIdentificacoesAtivosAsync(int? comunidadeId, CancellationToken cancellationToken) =>
+            Task.FromResult<IReadOnlyList<DizimistaIdentificacaoDto>>(comunidadeId.HasValue ? ativosPorComunidade.GetValueOrDefault(comunidadeId.Value, []) : ativosPorComunidade.Values.SelectMany(d => d).OrderBy(d => d.Nome, StringComparer.Ordinal).ToArray());
     }
 
     private sealed class ComunidadesFake(params Comunidade[] comunidades) : IComunidadeRepositorio
