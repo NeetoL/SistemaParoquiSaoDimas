@@ -17,4 +17,4 @@ internal sealed class DocumentoSistema
 internal sealed record ComunidadeRegistro(int Id, string Nome, TipoComunidade Tipo, bool Ativa, int OrdemExibicao, DateTime CriadoEm, DateTime? AtualizadoEm);
 internal sealed record DizimistaRegistro(int Id, string Nome, string? Cpf, string? Telefone, int ComunidadeId,
     DateOnly DataEntrada, StatusDizimista Status, DateTime CriadoEm, DateTime? AtualizadoEm,
-    string? Endereco, string? Cep, string? Bairro, DateOnly? DataNascimento);
+    string? Endereco, string? Cep, string? Bairro, DateOnly? DataNascimento, string? CodigoOriginal = null);

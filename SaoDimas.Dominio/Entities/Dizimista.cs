@@ -21,7 +21,9 @@ public sealed class Dizimista
 
     public int Id { get; private set; }
 
-    public string Codigo => FormatarCodigo(Id);
+    public string? CodigoOriginal { get; private set; }
+
+    public string Codigo => CodigoOriginal ?? FormatarCodigo(Id);
 
     public string Nome { get; private set; }
 

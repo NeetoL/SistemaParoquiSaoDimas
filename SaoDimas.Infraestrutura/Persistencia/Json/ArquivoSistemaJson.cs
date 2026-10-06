@@ -10,6 +10,7 @@ internal sealed class ArquivoSistemaJson : IDisposable
     internal static readonly JsonSerializerOptions Serializacao = new(JsonSerializerDefaults.Web) { WriteIndented = true };
     internal SemaphoreSlim Exclusao { get; } = new(1, 1);
     public string Caminho { get; }
+    private readonly Lazy<Dictionary<(int Comunidade, string Nome), List<DizimistaRegistro>>> _codigosOriginais;
     public ArquivoSistemaJson(IHostEnvironment ambiente, IConfiguration configuracao)
     {
         var diretorio = configuracao["Persistencia:Diretorio"] ?? "App_Data";
@@ -17,6 +18,17 @@ internal sealed class ArquivoSistemaJson : IDisposable
         var publico = Path.GetFullPath(Path.Combine(ambiente.ContentRootPath, "wwwroot")) + Path.DirectorySeparatorChar;
         if (Caminho.StartsWith(publico, StringComparison.OrdinalIgnoreCase))
             throw new InvalidOperationException("Os dados JSON devem ficar fora de wwwroot.");
+        var origem = configuracao["Persistencia:CadastrosIniciais"]
+            ?? Path.Combine(ambiente.ContentRootPath, "..", "dados-iniciais", "cadastros.json");
+        _codigosOriginais = new(() =>
+        {
+            if (!File.Exists(origem)) return [];
+            var iniciais = JsonSerializer.Deserialize<DocumentoSistema>(File.ReadAllText(origem), Serializacao)
+                ?? throw new InvalidDataException("O arquivo de cadastros iniciais é inválido.");
+            return iniciais.Dizimistas.Where(d => !string.IsNullOrWhiteSpace(d.CodigoOriginal))
+                .GroupBy(d => (d.ComunidadeId, d.Nome.ToUpperInvariant()))
+                .ToDictionary(g => g.Key, g => g.ToList());
+        });
     }
     internal async Task<DocumentoSistema> LerAsync(CancellationToken ct)
     {
@@ -24,6 +36,16 @@ internal sealed class ArquivoSistemaJson : IDisposable
         await using var arquivo = File.OpenRead(Caminho);
         var documento = await JsonSerializer.DeserializeAsync<DocumentoSistema>(arquivo, Serializacao, ct);
         Validar(documento);
+        for (var i = 0; i < documento!.Dizimistas.Count; i++)
+        {
+            var pessoa = documento.Dizimistas[i];
+            if (!string.IsNullOrWhiteSpace(pessoa.CodigoOriginal)
+                || !_codigosOriginais.Value.TryGetValue((pessoa.ComunidadeId, pessoa.Nome.ToUpperInvariant()), out var fontes)) continue;
+            var correspondentes = fontes.Where(f => f.Id == pessoa.Id
+                || (f.Telefone == pessoa.Telefone && f.Endereco == pessoa.Endereco)).ToList();
+            if (correspondentes.Count == 1)
+                documento.Dizimistas[i] = pessoa with { CodigoOriginal = correspondentes[0].CodigoOriginal };
+        }
         return documento!;
     }
     internal static void Validar(DocumentoSistema? documento)

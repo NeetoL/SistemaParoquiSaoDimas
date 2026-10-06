@@ -151,6 +151,13 @@ impressos são sempre consultados no backend. Individual (`/Dizimistas/{id}/Enve
 (`/Dizimistas/Envelopes?ids=..`) ou todos os ativos de uma comunidade (`/Dizimistas/Envelopes?comunidadeId=..`):
 uma folha A4 por dizimista.
 
+CodigoOriginal preserva a coluna Código Sistema das planilhas, separado da chave Id. Codigo utiliza
+esse valor quando presente; cadastros sem origem usam o formato interno anterior. O JSON serializa
+e reconstitui CodigoOriginal e recupera valores ausentes do arquivo de cadastros iniciais por
+comunidade/nome e ID ou contatos/endereço, somente quando a correspondência é única. O BAT realiza
+o mesmo preenchimento nas instalações existentes com backup. Nenhuma chave ou referência financeira
+é renumerada. A migração SQL adiciona uma coluna opcional, sem impor unicidade entre comunidades.
+
 Geometria (mm, A4 inteiro 210 × 297, sem cortes): abas laterais de 10 mm; fechamento y 0–60;
 frente y 60–178,5; verso y 178,5–297. Frente e verso têm exatamente 118,5 mm: a borda inferior
 encosta na dobra superior ao fechar a base, dispensando medição. Envelope montado 190 × 118,5 mm.

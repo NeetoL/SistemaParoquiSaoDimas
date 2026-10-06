@@ -45,6 +45,7 @@ internal sealed class DizimistaConfiguration : IEntityTypeConfiguration<Dizimist
         builder.Property(dizimista => dizimista.CriadoEm).IsRequired();
 
         builder.Ignore(dizimista => dizimista.Codigo);
+        builder.Property(dizimista => dizimista.CodigoOriginal).HasMaxLength(50);
 
         // Comunidade 1:N Dizimista. Uma comunidade com dizimistas não pode ser excluída (deve ser inativada).
         builder.HasOne<Comunidade>()

@@ -21,7 +21,8 @@ internal sealed class DizimistaJsonConsultas(SessaoSistemaJson sessao) : IDizimi
             var numerica = digitos.Length > 0 && busca.All(c => char.IsAsciiDigit(c) || c is '.' or '-' or '(' or ')' or ' ');
             var codigo = numerica && int.TryParse(digitos, out var id) ? id : 0;
             consulta = consulta.Where(d => CultureInfo.GetCultureInfo("pt-BR").CompareInfo.IndexOf(d.Nome, busca, CompareOptions.IgnoreCase | CompareOptions.IgnoreNonSpace) >= 0
-                || (numerica && (d.Id == codigo || d.Telefone?.Valor == digitos || d.Cpf?.Valor == digitos)));
+                || string.Equals(d.Codigo, busca, StringComparison.OrdinalIgnoreCase)
+                || (numerica && ((int.TryParse(d.Codigo, out var original) && original == codigo) || d.Telefone?.Valor == digitos || d.Cpf?.Valor == digitos)));
         }
         var total = consulta.Count();
         IOrderedEnumerable<Dizimista> ordenada = filtro.Ordenacao switch

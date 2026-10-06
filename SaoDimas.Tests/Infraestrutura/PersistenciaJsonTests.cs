@@ -22,6 +22,7 @@ public sealed partial class PersistenciaJsonTests : IDisposable
         var configuracao = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
         {
             ["Persistencia:Diretorio"] = diretorio,
+            ["Persistencia:CadastrosIniciais"] = Path.Combine(diretorio, "originais.json"),
             ["Login:Usuario"] = "admin",
             ["Login:SenhaHash"] = "AQAAAAIAAYagAAAAEIdNimkd2Cqjw3koU2AtNqIHaoOflrgNQ+AMjN51zpGGb0SrpnekIG78vVxYLMzBOA==",
             ["Paroquia:Nome"] = "Paróquia São Dimas",
@@ -43,6 +44,41 @@ public sealed partial class PersistenciaJsonTests : IDisposable
     }
     private static DadosDizimista Dados(string nome = "João da Silva", string? cpf = null) => new(nome, cpf, "(21) 99999-1234", 2,
         new DateOnly(2026, 1, 1), StatusDizimista.Ativo, "Rua das Flores, 10", "21775-280", "Padre Miguel", new DateOnly(1990, 7, 12));
+
+    [Fact]
+    public async Task Codigo_original_sobrevive_a_edicao_e_reinicio_e_aparece_na_busca_e_envelope()
+    {
+        int id;
+        using (var provider = Provider())
+            id = (await Requisicao<IDizimistaAplicacao, Resultado<int>>(provider, app => app.CadastrarAsync(Dados(), CancellationToken.None))).Valor;
+        var caminho = Path.Combine(_diretorio, "sistema.json");
+        var documento = System.Text.Json.Nodes.JsonNode.Parse(await File.ReadAllTextAsync(caminho, TestContext.Current.CancellationToken))!;
+        var originais = documento.DeepClone();
+        var pessoa = originais["dizimistas"]!.AsArray().Single(p => p!["id"]!.GetValue<int>() == id)!;
+        pessoa["codigoOriginal"] = "042";
+        pessoa["id"] = 500;
+        await File.WriteAllTextAsync(Path.Combine(_diretorio, "originais.json"), originais.ToJsonString(), TestContext.Current.CancellationToken);
+        using (var provider = Provider())
+        {
+            var detalhes = await Requisicao<IDizimistaAplicacao, DizimistaDetalhesDto?>(provider, app => app.ObterDetalhesAsync(id, CancellationToken.None));
+            Assert.Equal("042", detalhes!.Codigo);
+            var busca = await Requisicao<IDizimistaAplicacao, PaginaResultado<DizimistaResumoDto>>(provider, app => app.PesquisarAsync(new() { Busca = "42" }, CancellationToken.None));
+            Assert.Equal(id, Assert.Single(busca.Itens).Id);
+            var arquivo = await Requisicao<IEnvelopeDizimoAplicacao, Resultado<ArquivoPdf>>(provider, app => app.GerarAsync(id, CancellationToken.None));
+            using var pdf = UglyToad.PdfPig.PdfDocument.Open(arquivo.Valor.Conteudo);
+            var texto = string.Concat(pdf.GetPage(1).Letters.Select(l => l.Value));
+            Assert.Contains("042", texto, StringComparison.Ordinal);
+            Assert.DoesNotContain(SaoDimas.Dominio.Entities.Dizimista.FormatarCodigo(id), texto, StringComparison.Ordinal);
+            Assert.True((await Requisicao<IDizimistaAplicacao, Resultado>(provider, app => app.AtualizarAsync(id, Dados("Maria"), CancellationToken.None))).Sucesso);
+        }
+        using (var provider = Provider())
+        {
+            var detalhes = await Requisicao<IDizimistaAplicacao, DizimistaDetalhesDto?>(provider, app => app.ObterDetalhesAsync(id, CancellationToken.None));
+            Assert.Equal("042", detalhes!.Codigo);
+            Assert.Equal(id, detalhes.Id);
+            Assert.Equal("Maria", detalhes.Nome);
+        }
+    }
 
     [Fact]
     public async Task Cadastro_edicao_consultas_e_envelope_sobrevivem_ao_reinicio_sem_sql()

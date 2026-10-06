@@ -30,6 +30,7 @@ internal sealed class DizimistaConsultas(SaoDimasDbContext contexto) : IDizimist
             .Select(linha => new
             {
                 linha.Dizimista.Id,
+                linha.Dizimista.CodigoOriginal,
                 linha.Dizimista.Nome,
                 linha.Dizimista.Telefone,
                 linha.Dizimista.Status,
@@ -41,7 +42,7 @@ internal sealed class DizimistaConsultas(SaoDimasDbContext contexto) : IDizimist
         var itens = linhas
             .Select(linha => new DizimistaResumoDto(
                 linha.Id,
-                Dizimista.FormatarCodigo(linha.Id),
+                linha.CodigoOriginal ?? Dizimista.FormatarCodigo(linha.Id),
                 linha.Nome,
                 Comunidade.FormatarNome(linha.ComunidadeTipo, linha.ComunidadeNome),
                 linha.Telefone?.Formatado,
@@ -101,13 +102,13 @@ internal sealed class DizimistaConsultas(SaoDimasDbContext contexto) : IDizimist
         var linhas = await ComComunidade(consulta)
             .OrderBy(linha => linha.Dizimista.Nome)
             .ThenBy(linha => linha.Dizimista.Id)
-            .Select(linha => new { linha.Dizimista.Id, linha.Dizimista.Nome, linha.Dizimista.Telefone, linha.Dizimista.Endereco, linha.Dizimista.Cep, linha.Dizimista.Bairro, linha.Dizimista.DataNascimento, linha.ComunidadeNome, linha.ComunidadeTipo })
+            .Select(linha => new { linha.Dizimista.Id, linha.Dizimista.CodigoOriginal, linha.Dizimista.Nome, linha.Dizimista.Telefone, linha.Dizimista.Endereco, linha.Dizimista.Cep, linha.Dizimista.Bairro, linha.Dizimista.DataNascimento, linha.ComunidadeNome, linha.ComunidadeTipo })
             .ToListAsync(cancellationToken);
 
         return linhas
             .Select(linha => new DizimistaIdentificacaoDto(
                 linha.Id,
-                Dizimista.FormatarCodigo(linha.Id),
+                linha.CodigoOriginal ?? Dizimista.FormatarCodigo(linha.Id),
                 linha.Nome,
                 Comunidade.FormatarNome(linha.ComunidadeTipo, linha.ComunidadeNome), linha.Telefone?.Formatado, linha.Endereco, linha.Cep, linha.Bairro, linha.DataNascimento))
             .ToList();
@@ -158,7 +159,9 @@ internal sealed class DizimistaConsultas(SaoDimasDbContext contexto) : IDizimist
 
         return consulta.Where(dizimista =>
             dizimista.Nome.Contains(busca)
-            || (codigo != null && dizimista.Id == codigo)
+            || dizimista.CodigoOriginal == busca
+            || (codigo != null && dizimista.CodigoOriginal == digitos)
+            || (codigo != null && dizimista.CodigoOriginal == null && dizimista.Id == codigo)
             || (telefone != null && dizimista.Telefone == telefone)
             || (cpf != null && dizimista.Cpf == cpf));
     }

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SaoDimas.Infraestrutura.Persistencia;
 
@@ -11,9 +12,11 @@ using SaoDimas.Infraestrutura.Persistencia;
 namespace SaoDimas.Infraestrutura.Persistencia.Migrations
 {
     [DbContext(typeof(SaoDimasDbContext))]
-    partial class SaoDimasDbContextModelSnapshot : ModelSnapshot
+    [Migration("20261006160000_CodigoOriginalDizimista")]
+    partial class CodigoOriginalDizimista
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

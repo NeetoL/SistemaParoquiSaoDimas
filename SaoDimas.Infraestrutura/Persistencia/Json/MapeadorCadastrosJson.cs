@@ -26,5 +26,5 @@ internal static class MapeadorCadastrosJson
         entidade.GetType().GetProperty(propriedade)!.SetValue(entidade, valor);
     public static ComunidadeRegistro ParaRegistro(Comunidade c) => new(c.Id, c.Nome, c.Tipo, c.Ativa, c.OrdemExibicao, c.CriadoEm, c.AtualizadoEm);
     public static DizimistaRegistro ParaRegistro(Dizimista d) => new(d.Id, d.Nome, d.Cpf?.Valor, d.Telefone?.Valor, d.ComunidadeId,
-        d.DataEntrada, d.Status, d.CriadoEm, d.AtualizadoEm, d.Endereco, d.Cep, d.Bairro, d.DataNascimento);
+        d.DataEntrada, d.Status, d.CriadoEm, d.AtualizadoEm, d.Endereco, d.Cep, d.Bairro, d.DataNascimento, d.CodigoOriginal);
 }

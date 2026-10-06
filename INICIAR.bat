@@ -175,6 +175,7 @@ if (Test-Path -LiteralPath $cadastrosIniciais) {
             $atual = Get-Content -LiteralPath $arquivoDados -Raw -Encoding UTF8 | ConvertFrom-Json
             if ($atual.versao -ne 1) { throw 'Formato dos dados atuais nao reconhecido.' }
             $adicionados = 0
+            $codigosIncluidos = 0
             foreach ($comunidade in $origem.comunidades) {
                 if (!($atual.comunidades | Where-Object { $_.id -eq $comunidade.id })) { $atual.comunidades = @($atual.comunidades) + @($comunidade) }
             }
@@ -183,7 +184,13 @@ if (Test-Path -LiteralPath $cadastrosIniciais) {
                     $_.nome -eq $pessoa.nome -and $_.comunidadeId -eq $pessoa.comunidadeId -and
                     (($_.id -eq $pessoa.id) -or ($_.telefone -eq $pessoa.telefone -and $_.endereco -eq $pessoa.endereco))
                 })
-                if ($existe.Count -gt 0) { continue }
+                if ($existe.Count -gt 0) {
+                    if ($existe.Count -eq 1 -and $pessoa.codigoOriginal -and !$existe[0].codigoOriginal) {
+                        $existe[0] | Add-Member -MemberType NoteProperty -Name codigoOriginal -Value $pessoa.codigoOriginal -Force
+                        $codigosIncluidos++
+                    }
+                    continue
+                }
                 if ($atual.dizimistas | Where-Object { $_.id -eq $pessoa.id }) {
                     $maiorId = ($atual.dizimistas | Measure-Object -Property id -Maximum).Maximum
                     $pessoa.id = [int][Math]::Max($atual.sequenciaDizimista, $maiorId) + 1
@@ -192,7 +199,7 @@ if (Test-Path -LiteralPath $cadastrosIniciais) {
                 $atual.sequenciaDizimista = [int][Math]::Max($atual.sequenciaDizimista, $pessoa.id)
                 $adicionados++
             }
-            if ($adicionados -gt 0) {
+            if ($adicionados -gt 0 -or $codigosIncluidos -gt 0) {
                 $pastaBackups = Join-Path $dados 'backups'
                 New-Item -ItemType Directory -Path $pastaBackups -Force | Out-Null
                 $backup = Join-Path $pastaBackups ('antes-cadastros-' + (Get-Date -Format 'yyyyMMdd-HHmmss-fff') + '.json')
@@ -201,6 +208,7 @@ if (Test-Path -LiteralPath $cadastrosIniciais) {
                 try { [IO.File]::Replace($temporario, $arquivoDados, $backup) }
                 finally { if (Test-Path -LiteralPath $temporario) { Remove-Item -LiteralPath $temporario } }
                 Write-Host ($adicionados.ToString() + ' dizimistas incluidos; cadastros anteriores preservados.')
+                if ($codigosIncluidos -gt 0) { Write-Host ($codigosIncluidos.ToString() + ' codigos originais das planilhas incluidos.') }
             }
         }
     } finally { $bloqueio.Dispose() }
