@@ -5,7 +5,7 @@
     // relacionados: controllers de telas filhas que também destacam o item (ex.: Envelopes → Dizimistas).
     void Item(string texto, string icone, string? controller, params string[] relacionados)
     {
-        if(controller is "Dizimistas" or "Envelopes" && User.IsInRole("Coordenador"))return;
+        if(controller is "Dizimistas" or "Envelopes" or "Rifas" && User.IsInRole("Coordenador"))return;
         if (controller is null)
         {
             <span class="sidebar-link" aria-disabled="true" data-tooltip="@texto (em breve)">
@@ -56,6 +56,7 @@
             </summary>
         <ul class="sidebar-secao">
             <li>@{ Item("Dizimistas", "users", "Dizimistas", "Envelopes"); }</li>
+            <li>@{ Item("Rifas", "ticket", "Rifas"); }</li>
             <li>@{ Item("Eventos", "calendar-days", "Eventos", "Tickets"); }</li>
             <li>@{ Item("Calendário da fé", "calendar-heart", "Calendario"); }</li>
         </ul>

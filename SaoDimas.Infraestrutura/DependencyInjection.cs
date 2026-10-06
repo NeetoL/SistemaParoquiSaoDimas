@@ -39,6 +39,7 @@ public static class DependencyInjection
         services.AddSingleton<ArquivoSistemaJson>();
         services.AddScoped<SessaoSistemaJson>();
         services.AddSingleton<IDocumentoParoquialService, DocumentoParoquialService>();
+        services.AddScoped<IRifasDados, RifasJsonDados>();
         services.AddScoped<IGestaoParoquialDados, GestaoParoquialDados>();
         services.AddScoped<IComunidadeRepositorio, ComunidadeJsonRepositorio>();
         services.AddScoped<IDizimistaRepositorio, DizimistaJsonRepositorio>();

@@ -1,0 +1,10 @@
+@model RifaFormularioViewModel
+@{ViewData["Title"]="Nova rifa";ViewData["Descricao"]="Defina os prêmios, a numeração e a data do sorteio.";}
+@section Breadcrumb {<li><a asp-action="Index">Rifas</a></li><li>Nova</li>}
+<form method="post" asp-action="Novo" class="ui-folha"><div asp-validation-summary="All" class="alerta-erro"></div><fieldset class="ui-formulario-secao"><legend>Dados da rifa</legend><div class="grid gap-5 md:grid-cols-2">
+<div class="form-field"><label asp-for="Nome" class="form-label">Nome da rifa *</label><input asp-for="Nome" class="form-control" required maxlength="150"/></div>
+<div class="form-field"><label asp-for="ComunidadeId" class="form-label">Comunidade *</label><select asp-for="ComunidadeId" asp-items="Model.Comunidades" class="form-control" required><option value="">Selecione...</option></select></div>
+<div class="form-field"><label asp-for="DataSorteio" class="form-label">Data do sorteio *</label><input asp-for="DataSorteio" type="date" class="form-control" required/></div>
+<div class="form-field"><label asp-for="Quantidade" class="form-label">Quantidade de números *</label><input asp-for="Quantidade" type="number" min="1" max="10000" class="form-control" required/><p class="ui-formulario-nota">Os números começam em 0001. Até 10.000 por rifa.</p></div>
+<div class="form-field"><label asp-for="Valor" class="form-label">Valor por número (R$) *</label><input asp-for="Valor" class="form-control" inputmode="decimal" required/></div>
+<div class="form-field"><label asp-for="Premios" class="form-label">Prêmios, em ordem *</label><textarea asp-for="Premios" class="form-control" rows="4" required maxlength="2000" aria-describedby="premios-ajuda"></textarea><p id="premios-ajuda" class="ui-formulario-nota">Um prêmio por linha, até 20 prêmios.</p></div></div></fieldset><div class="ui-formulario-acoes"><a asp-action="Index" class="btn btn-outline">Cancelar</a><button class="btn btn-primary">Criar rifa</button></div></form>

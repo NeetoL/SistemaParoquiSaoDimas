@@ -4,6 +4,7 @@ using SaoDimas.Infraestrutura.Persistencia.Temporaria;
 namespace SaoDimas.Infraestrutura.Persistencia.Json;
 internal sealed class DocumentoSistema
 {
+    public List<RifaDto> Rifas { get; set; } = [];
     public List<RegistroParoquial> Gestao { get; set; } = [];
     public List<UsuarioParoquial> Usuarios { get; set; } = [];
     public List<AuditoriaParoquial> Auditoria { get; set; } = [];

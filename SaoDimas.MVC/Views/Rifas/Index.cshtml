@@ -1,0 +1,5 @@
+@model IReadOnlyList<SaoDimas.Aplicacao.Dtos.RifaDto>
+@{ViewData["Title"]="Rifas";ViewData["Descricao"]="Números, compradores, pagamentos e resultados das rifas da paróquia.";}
+@section Acoes {<a asp-action="Novo" class="btn btn-primary">Nova rifa</a>}
+@if(Model.Count==0){<div class="ui-folha empty-state"><h2 class="empty-state-titulo">Nenhuma rifa cadastrada</h2><p class="empty-state-descricao">Crie uma rifa para organizar os prêmios e começar a reservar os números.</p><a asp-action="Novo" class="btn btn-primary">Criar primeira rifa</a></div>}
+else {<div class="table-wrapper"><table class="table"><caption class="sr-only">Rifas cadastradas</caption><thead><tr><th>Rifa</th><th>Sorteio</th><th>Situação</th><th>Números pagos</th><th class="ui-numero">Arrecadado</th></tr></thead><tbody>@foreach(var r in Model){<tr><td><a asp-action="Detalhes" asp-route-id="@r.Id">@r.Nome</a></td><td>@r.DataSorteio.ToString("dd/MM/yyyy")</td><td><span class="badge">@r.Situacao</span></td><td>@r.Numeros.Count(n=>n.Pago) / @r.Quantidade</td><td class="ui-numero">@((r.Valor*r.Numeros.Count(n=>n.Pago)).ToString("C"))</td></tr>}</tbody></table></div>}

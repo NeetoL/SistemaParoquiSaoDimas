@@ -60,6 +60,9 @@ internal sealed class ArquivoSistemaJson : IDisposable
             || documento.Dizimistas.Select(d => d.Id).Distinct().Count() != documento.Dizimistas.Count
             || documento.Dizimistas.Any(d => !documento.Comunidades.Any(c => c.Id == d.ComunidadeId)))
             throw new InvalidDataException("O arquivo JSON de dados é inválido. Restaure a cópia de segurança; o arquivo não foi sobrescrito.");
+        if (documento.Rifas is null || documento.Rifas.Select(r => r?.Id).Distinct().Count() != documento.Rifas.Count
+            || documento.Rifas.Any(r => !SaoDimas.Aplicacao.Utilitarios.ValidacaoRifas.Valida(r) || !documento.Comunidades.Any(c => c.Id == r.ComunidadeId)))
+            throw new InvalidDataException("O backup contém rifas inválidas.");
         ValidarGestao(documento);
     }
     private static void ValidarGestao(DocumentoSistema documento)

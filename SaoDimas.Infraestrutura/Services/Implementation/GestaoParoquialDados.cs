@@ -32,7 +32,7 @@ internal sealed class GestaoParoquialDados(SessaoSistemaJson sessao,ArquivoSiste
   var bytes=await LerBackupAsync(nome,ct);var restaurado=JsonSerializer.Deserialize<DocumentoSistema>(bytes,ArquivoSistemaJson.Serializacao);ArquivoSistemaJson.Validar(restaurado);
   if(restaurado!.Gestao.Any(r=>r is null||r.Campos is null||CatalogoParoquial.Obter(r.Modulo) is null))throw new InvalidDataException("Backup com registros inválidos.");
   Directory.CreateDirectory(Pasta);File.Copy(arquivo.Caminho,Path.Combine(Pasta,"antes-restauracao-"+DateTime.UtcNow.ToString("yyyyMMdd-HHmmss", System.Globalization.CultureInfo.InvariantCulture)+"-"+Guid.NewGuid().ToString("N")+".json"));
-  sessao.Documento.Gestao=restaurado.Gestao;sessao.Documento.Eventos=restaurado.Eventos;sessao.Documento.EventosLegadosImportados=restaurado.EventosLegadosImportados;sessao.Documento.SequenciaDizimista=restaurado.SequenciaDizimista;
+  sessao.Documento.Rifas=restaurado.Rifas;sessao.Documento.Gestao=restaurado.Gestao;sessao.Documento.Eventos=restaurado.Eventos;sessao.Documento.EventosLegadosImportados=restaurado.EventosLegadosImportados;sessao.Documento.SequenciaDizimista=restaurado.SequenciaDizimista;
   sessao.Comunidades.Clear();sessao.Comunidades.AddRange(restaurado.Comunidades.Select(MapeadorCadastrosJson.ParaEntidade));
   sessao.Dizimistas.Clear();sessao.Dizimistas.AddRange(restaurado.Dizimistas.Select(MapeadorCadastrosJson.ParaEntidade));
   // Mantém contas atuais e histórico de auditoria para não reativar senhas e acessos antigos.

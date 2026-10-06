@@ -9,6 +9,7 @@ public sealed class PermissoesParoquiaisFilter:IAsyncAuthorizationFilter
   var controller=context.RouteData.Values["controller"]?.ToString();var action=context.RouteData.Values["action"]?.ToString();
   var perfil=user.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value??"";
   bool permitido=controller switch{
+   "Rifas"=>perfil is "Administrador" or "Secretaria" or "Tesouraria",
    "Gestao"=>CatalogoParoquial.Permite(perfil,context.RouteData.Values["modulo"]?.ToString()??""),
    "Usuarios" or "Backups" or "Auditoria"=>perfil=="Administrador",
    "Relatorios"=>true,

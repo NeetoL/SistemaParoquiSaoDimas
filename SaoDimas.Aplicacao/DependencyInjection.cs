@@ -18,6 +18,7 @@ public static class DependencyInjection
         // Relógio do sistema (Singleton, sem estado): permite controlar "agora" nos testes.
         services.AddSingleton(TimeProvider.System);
 
+        services.AddScoped<IRifasAplicacao, RifasAplicacao>();
         services.AddScoped<ICadastrosPlanilhaAplicacao, CadastrosPlanilhaAplicacao>();
         services.AddScoped<IUsuariosAplicacao, UsuariosAplicacao>();
         services.AddScoped<IGestaoParoquialAplicacao, GestaoParoquialAplicacao>();

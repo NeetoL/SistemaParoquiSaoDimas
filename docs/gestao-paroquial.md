@@ -52,3 +52,15 @@ Se o arquivo principal ficar corrompido e o login não abrir, pare o servidor e 
 ## Verificação
 
 Compilação sem avisos, testes automatizados de domínio, arquitetura e persistência e verificações no navegador com dados isolados. Incluem saldo, recibos e certidões, importação, conflitos, permissões, invalidação de sessão, restauração, proteção dos formulários, temas e três larguras de tela.
+
+## Rifas
+
+Em **Gestão Paroquial → Rifas**, administrador, secretaria e tesouraria podem criar uma rifa, escolher a comunidade, informar o valor de cada número, a data do sorteio e até 20 prêmios (um por linha). A numeração vai de 0001 até a quantidade cadastrada, limitada a 10.000 números.
+
+Reserve até 100 números por vez, informando comprador, contato e vendedor. O sistema impede reservas repetidas, inclusive entre computadores, e preserva o formulário quando há erro. A listagem permite pesquisar número, comprador ou vendedor, filtrar por situação e navegar em páginas de 100 números.
+
+Confirme o pagamento de cada número, com sua forma de pagamento. O painel da rifa mostra disponíveis, reservados, pagos, valor recebido e pendente. Estes valores são o controle próprio da rifa; ainda não são lançamentos automáticos no módulo Financeiro. Reservas não pagas podem ser liberadas; pagamentos podem ser estornados antes do resultado. Cada alteração fica na auditoria.
+
+Feche as vendas antes de registrar o resultado apurado no sorteio. Escolha o prêmio, informe o número pago vencedor e a referência ou ata, e confirme o registro definitivo. O sistema não realiza sorteio automático. Quando todos os prêmios têm resultado, a rifa é concluída e fica somente para consulta. Vendas podem ser reabertas antes do primeiro resultado. Para cancelar a rifa, estorne os pagamentos e confirme o cancelamento.
+
+**Imprimir bilhetes** abre os bilhetes reservados para impressão em A4; cada número também tem impressão individual. **Exportar CSV** gera a lista de compradores, contatos, vendedores, situação e pagamentos. As rifas ficam no mesmo JSON e são incluídas nos backups e na restauração.
