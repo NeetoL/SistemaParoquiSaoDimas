@@ -278,3 +278,12 @@
   }
   @media(prefers-reduced-motion:reduce) { *,*::before,*::after { transition-duration:0.001ms!important; animation-duration:0.001ms!important; } }
 }
+
+@media screen {
+  .produto-identificacao { display:grid; grid-template-columns:160px minmax(0,1fr); gap:20px; align-items:start; }
+  .produto-identificacao .form-control { min-width:0; }
+  @media (max-width:640px) {
+    .produto-identificacao { grid-template-columns:minmax(0,1fr); }
+    .produto-identificacao > .form-field:first-child { max-width:160px; }
+  }
+}

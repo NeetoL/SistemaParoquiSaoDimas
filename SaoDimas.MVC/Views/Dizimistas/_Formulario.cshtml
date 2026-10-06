@@ -7,16 +7,18 @@
     <legend>Dados pessoais</legend>
     <p class="ui-formulario-nota">Identificação do dizimista. Campos com * são obrigatórios.</p>
     <div class="grid gap-5 md:grid-cols-2">
-        <div class="form-field md:col-span-2">
+        <div class="produto-identificacao md:col-span-2">
+        <div class="form-field">
             <label asp-for="CodigoOriginal" class="form-label">Código do dizimista <span class="obrigatorio" aria-hidden="true">*</span></label>
-            <input asp-for="CodigoOriginal" class="form-control" autocomplete="off" maxlength="50" aria-describedby="codigo-ajuda" required />
-            <p id="codigo-ajuda" class="ui-formulario-nota">Digite o código informado pelo outro sistema. Ele será impresso no envelope.</p>
+            <input asp-for="CodigoOriginal" class="form-control font-mono" inputmode="numeric" autocomplete="off" maxlength="4" pattern="[0-9]{1,4}" placeholder="Ex.: 123" aria-describedby="codigo-ajuda" required />
+            <p id="codigo-ajuda" class="ui-formulario-nota">Até 4 números.</p>
             <span asp-validation-for="CodigoOriginal" class="form-error"></span>
         </div>
-        <div class="form-field md:col-span-2">
+        <div class="form-field">
             <label asp-for="Nome" class="form-label">Nome completo <span class="obrigatorio" aria-hidden="true">*</span></label>
             <input asp-for="Nome" class="form-control" autocomplete="name" required />
             <span asp-validation-for="Nome" class="form-error"></span>
+        </div>
         </div>
 
         <div class="form-field">

@@ -13,7 +13,8 @@ namespace SaoDimas.MVC.Models;
 public sealed class DizimistaFormularioViewModel
 {
     [Required(ErrorMessage = "Informe o código do outro sistema.")]
-    [StringLength(50, ErrorMessage = "O código deve ter no máximo 50 caracteres.")]
+    [StringLength(4, ErrorMessage = "O código deve ter no máximo 4 números.")]
+    [RegularExpression(@"^[0-9]{1,4}$", ErrorMessage = "Informe apenas números, com até 4 dígitos.")]
     [Display(Name = "Código do dizimista")]
     public string CodigoOriginal { get; set; } = string.Empty;
 
