@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="280" viewBox="0 0 1200 280" role="img" aria-labelledby="title desc">
+  <title id="title">São Dimas — Gestão Paroquial</title>
+  <desc id="desc">Apresentação do sistema de gestão paroquial com símbolo de igreja, tipografia clara e cores azul grafite.</desc>
+  <rect width="1200" height="280" rx="16" fill="#18283d"/>
+  <path d="M0 250H1200" stroke="#334b69"/>
+  <rect x="56" y="66" width="140" height="140" rx="24" fill="#243c5b"/>
+  <g fill="none" stroke="#b4ceff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M93 171v-58l33-26 33 26v58H93Zm0-42-18 12v30h18m66-42 18 12v30h-18M119 171v-23a7 7 0 0 1 14 0v23m-7-58v14m-7-7h14"/>
+  </g>
+  <text x="232" y="104" fill="#9ab6db" font-family="Segoe UI,Arial,sans-serif" font-size="14" letter-spacing="4">GESTÃO PAROQUIAL</text>
+  <text x="228" y="171" fill="#ffffff" font-family="Segoe UI,Arial,sans-serif" font-size="62" font-weight="700" letter-spacing="-2">São Dimas</text>
+  <text x="232" y="208" fill="#cad8eb" font-family="Segoe UI,Arial,sans-serif" font-size="19">Pessoas, contribuições e a vida da comunidade em um só lugar.</text>
+  <circle cx="1080" cy="86" r="5" fill="#8ad5dc"/>
+  <text x="1094" y="91" fill="#cad8eb" font-family="Segoe UI,Arial,sans-serif" font-size="13">WEB</text>
+</svg>
