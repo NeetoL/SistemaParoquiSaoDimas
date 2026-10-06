@@ -93,7 +93,7 @@ public sealed class EnvelopeDizimoPdfServiceTests
             foreach (var outro in enderecos.Where(item => item.Key != dizimistas[i].Comunidade))
                 Assert.DoesNotContain(SemEspacos(outro.Value), texto, StringComparison.Ordinal);
             Assert.Empty(LetrasSobreDobras(pagina));
-            Assert.Equal(dizimistas[i].Comunidade == SantoExpedito.Comunidade || dizimistas[i].Comunidade == SantoInacio.Comunidade ? 4 : 3, pagina.GetImages().Count());
+            Assert.Equal(dizimistas[i].Comunidade == Matriz.Comunidade ? 3 : 4, pagina.GetImages().Count());
         }
     }
 
@@ -216,7 +216,7 @@ public sealed class EnvelopeDizimoPdfServiceTests
     public void Logo_e_embutida_uma_unica_vez_mesmo_em_lote()
     {
         var umaFolha = CriarServico().Gerar([Matriz]);
-        var quatroFolhas = CriarServico().Gerar([Matriz, SantaTeresinha, Matriz, SantaTeresinha]);
+        var quatroFolhas = CriarServico().Gerar([Matriz, Matriz, Matriz, Matriz]);
 
         using var pdf = PdfDocument.Open(umaFolha);
         // Brasão, símbolo do dízimo e QR Code original do Pix.
@@ -242,7 +242,7 @@ public sealed class EnvelopeDizimoPdfServiceTests
         Assert.InRange(lote.Length - uma.Length, 0, 3 * 40 * 1024);
     }
 
-    public static TheoryData<DizimistaIdentificacaoDto> ComunidadesComSanto() => [SantoExpedito, SantoInacio, SantoInacio with { Comunidade = "Capela Santo Inácio de Loyola" }];
+    public static TheoryData<DizimistaIdentificacaoDto> ComunidadesComSanto() => [SantoExpedito, SantaTeresinha, SantoInacio, SantoInacio with { Comunidade = "Capela Santo Inácio de Loyola" }];
 
     private static List<string> LetrasSobreDobras(Page pagina)
     {
