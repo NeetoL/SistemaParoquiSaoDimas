@@ -93,7 +93,7 @@ public sealed class EnvelopeDizimoPdfServiceTests
             foreach (var outro in enderecos.Where(item => item.Key != dizimistas[i].Comunidade))
                 Assert.DoesNotContain(SemEspacos(outro.Value), texto, StringComparison.Ordinal);
             Assert.Empty(LetrasSobreDobras(pagina));
-            Assert.Equal(3, pagina.GetImages().Count());
+            Assert.Equal(dizimistas[i].Comunidade == SantoExpedito.Comunidade ? 4 : 3, pagina.GetImages().Count());
         }
     }
 
@@ -216,13 +216,29 @@ public sealed class EnvelopeDizimoPdfServiceTests
     public void Logo_e_embutida_uma_unica_vez_mesmo_em_lote()
     {
         var umaFolha = CriarServico().Gerar([Matriz]);
-        var quatroFolhas = CriarServico().Gerar([Matriz, SantaTeresinha, SantoInacio, SantoExpedito]);
+        var quatroFolhas = CriarServico().Gerar([Matriz, SantaTeresinha, SantoInacio, Matriz]);
 
         using var pdf = PdfDocument.Open(umaFolha);
         // Brasão, símbolo do dízimo e QR Code original do Pix.
         Assert.Equal(3, pdf.GetPage(1).GetImages().Count());
         // Folhas extras acrescentam somente texto e vetores, não novas cópias da imagem.
         Assert.InRange(quatroFolhas.Length - umaFolha.Length, 0, 3 * 40 * 1024);
+    }
+
+    [Fact]
+    public void Santo_expedito_fica_ao_lado_do_simbolo_e_e_reutilizado_em_lote()
+    {
+        var uma = CriarServico().Gerar([SantoExpedito]);
+        var lote = CriarServico().Gerar([SantoExpedito, SantoExpedito, SantoExpedito, SantoExpedito]);
+        using var pdf = PdfDocument.Open(uma);
+        Assert.Equal(4, pdf.GetPage(1).GetImages().Count());
+        var imagensFrente = pdf.GetPage(1).GetImages().Where(i =>
+            (pdf.GetPage(1).Height - i.BoundingBox.Top) / PontosPorMm >= Molde.DobraFechamento &&
+            (pdf.GetPage(1).Height - i.BoundingBox.Bottom) / PontosPorMm <= Molde.DobraBase)
+            .OrderBy(i => i.BoundingBox.Left).ToArray();
+        Assert.Equal(3, imagensFrente.Length);
+        Assert.True(imagensFrente[2].BoundingBox.Left >= imagensFrente[1].BoundingBox.Right);
+        Assert.InRange(lote.Length - uma.Length, 0, 3 * 40 * 1024);
     }
 
     private static List<string> LetrasSobreDobras(Page pagina)

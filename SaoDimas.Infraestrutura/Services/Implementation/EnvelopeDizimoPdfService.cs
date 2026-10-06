@@ -74,6 +74,9 @@ internal sealed class EnvelopeDizimoPdfService(IOptions<ConfiguracaoParoquia> op
     private readonly Lazy<Image> _simboloDizimo = new(() =>
         Image.FromFile(Path.Combine(ambiente.ContentRootPath, "wwwroot/img/dizimo-expressao-fe.jpeg")));
 
+    private readonly Lazy<Image> _santoExpedito = new(() =>
+        Image.FromFile(Path.Combine(ambiente.ContentRootPath, "wwwroot/img/santo-expedito.png")));
+
     public byte[] Gerar(IReadOnlyList<DizimistaIdentificacaoDto> envelopes)
     {
         ArgumentNullException.ThrowIfNull(envelopes);
@@ -139,9 +142,10 @@ internal sealed class EnvelopeDizimoPdfService(IOptions<ConfiguracaoParoquia> op
 
     private void ComporFrente(IContainer container, DizimistaIdentificacaoDto envelope, ConfiguracaoParoquia paroquia)
     {
+        var santoExpedito = string.Equals(envelope.Comunidade.Trim(), "Capela Santo Expedito", StringComparison.OrdinalIgnoreCase);
         container.Column(coluna =>
         {
-            coluna.Item().Height(24, Unit.Millimetre).Row(cabecalho =>
+            coluna.Item().Height(santoExpedito ? 30 : 24, Unit.Millimetre).Row(cabecalho =>
             {
                 cabecalho.ConstantItem(17, Unit.Millimetre).AlignMiddle().Image(_logo.Value).FitArea();
                 cabecalho.RelativeItem().PaddingLeft(4, Unit.Millimetre).AlignMiddle().Column(titulo =>
@@ -155,6 +159,9 @@ internal sealed class EnvelopeDizimoPdfService(IOptions<ConfiguracaoParoquia> op
                 });
                 cabecalho.ConstantItem(25, Unit.Millimetre).PaddingLeft(3, Unit.Millimetre)
                     .AlignMiddle().Height(22, Unit.Millimetre).Image(_simboloDizimo.Value).FitArea();
+                if (santoExpedito)
+                    cabecalho.ConstantItem(31, Unit.Millimetre).PaddingLeft(3, Unit.Millimetre)
+                        .AlignMiddle().Height(28, Unit.Millimetre).Image(_santoExpedito.Value).FitArea();
             });
 
             coluna.Item().PaddingVertical(2.5f, Unit.Millimetre).LineHorizontal(0.6f).LineColor(Dourado);

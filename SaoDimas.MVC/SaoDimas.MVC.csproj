@@ -40,7 +40,7 @@
   </Target>
 
   <ItemGroup>
-    <FrontendSaida Include="wwwroot/img/dizimo-expressao-fe.jpeg;wwwroot/img/pix-qrcode.png" />
+    <FrontendSaida Include="wwwroot/img/dizimo-expressao-fe.jpeg;wwwroot/img/pix-qrcode.png;wwwroot/img/santo-expedito.png" />
   </ItemGroup>
 
   <Target Name="FrontendBuild" DependsOnTargets="FrontendInstalar" BeforeTargets="BeforeBuild"
