@@ -1,0 +1,2 @@
+# Scripts CMD precisam conservar as quebras de linha do Windows em todo checkout.
+*.bat text eol=crlf
