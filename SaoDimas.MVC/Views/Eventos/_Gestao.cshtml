@@ -1,0 +1,171 @@
+@using SaoDimas.Dominio.Entities
+@model GestaoEventoDto
+@{ var rota = $"/Eventos/{Model.Id}/Gestao"; var ab = Model.Caixa.Abertura; var cf = Model.Caixa.Conferencia; var fechado = Model.Caixa.Fechamento;
+    var quitados = Model.Responsaveis.Count(r => r.Situacao == "Quitado");
+    var progresso = Model.Responsaveis.Count == 0 ? 0 : quitados * 100 / Model.Responsaveis.Count;
+}
+<section id="edicoes" class="card mb-8">
+    <div class="card-body">
+        <div class="secao-cabecalho"><div><p class="text-sm text-muted">Evento tradicional · @Model.Comunidade</p><h2 class="secao-titulo">@Model.Evento.Nome</h2></div><span class="badge badge-neutral">Edição @Model.Ano</span></div>
+        <div class="flex flex-wrap gap-3 mb-4">
+            @foreach (var edicao in Model.Edicoes)
+            {
+                <a class="btn @(edicao.Id == Model.Id ? "btn-primary" : "btn-outline")" href="/Eventos/@edicao.Id">@edicao.Ano · @(edicao.Caixa == SituacaoCaixa.Fechado ? "Fechado" : edicao.Status == StatusEvento.Encerrado ? "Aguardando fechamento" : edicao.Status.ToString())</a>
+            }
+        </div>
+        <details><summary class="font-medium cursor-pointer">+ Nova edição / Repetir evento</summary>
+            <form class="grid gap-3 mt-4 sm:grid-cols-2" hx-post="@(rota)/Edicoes">
+                <label>Ano <input class="form-control" name="ano" type="number" min="1900" max="9999" value="@(Model.Ano + 1)" required /></label>
+                <label>Modelo <select class="form-control" data-modelo-edicao>
+                    @foreach (var edicao in Model.Edicoes) { <option value="/Eventos/@edicao.Id/Gestao/Edicoes" selected="@(edicao.Id == Model.Id)">Edição @edicao.Ano</option> }
+                </select></label>
+                <label>Data inicial <input class="form-control" name="inicio" type="date" required /></label>
+                <label>Data final <input class="form-control" name="fim" type="date" /></label>
+                <label class="sm:col-span-2">Registrado por <input class="form-control" name="operador" required maxlength="150" /></label>
+                <label><input type="checkbox" name="produtos" value="true" checked /> Copiar produtos (desmarque para edição vazia)</label>
+                <label><input type="checkbox" name="precos" value="true" checked /> Usar preços como valores iniciais</label>
+                <p class="sm:col-span-2 text-sm text-muted">O modelo de impressão A4 da paróquia continua disponível. Produtos sem preço ficam inativos até a configuração. Não serão copiados tickets, numeração, faixas, responsáveis, vendas, devoluções, recebimentos, caixa ou fechamento.</p>
+                <button class="btn btn-primary" type="submit">Criar nova edição</button>
+            </form>
+        </details>
+    </div>
+</section>
+<section id="financeiro" class="mb-8">
+    <div class="secao-cabecalho"><h2 class="secao-titulo">Visão financeira · @Model.Ano</h2><span class="badge badge-neutral">Caixa: @(Model.SituacaoCaixa switch { SituacaoCaixa.NaoAberto => "Não aberto", SituacaoCaixa.EmConferencia => "Em conferência", _ => Model.SituacaoCaixa.ToString() })</span></div>
+    <div class="indicadores mb-4">
+        <div class="indicador"><div><p class="indicador-valor">@Model.Potencial.ToString("C2")</p><p class="indicador-rotulo">Potencial</p></div></div>
+        <div class="indicador"><div><p class="indicador-valor">@Model.Devido.ToString("C2")</p><p class="indicador-rotulo">Devido pelas vendas</p></div></div>
+        <div class="indicador"><div><p class="indicador-valor">@Model.Prestado.ToString("C2")</p><p class="indicador-rotulo">Recebido · sem fundo de troco</p></div></div>
+        <div class="indicador"><div><p class="indicador-valor">@Model.Pendente.ToString("C2")</p><p class="indicador-rotulo">Saldo pendente</p></div></div>
+    </div>
+    <div class="card p-4"><p class="font-medium">@quitados de @Model.Responsaveis.Count responsáveis quitados</p><progress class="w-full mt-2" max="100" value="@progresso">@progresso%</progress><p class="text-sm text-muted mt-2">O valor devido inclui somente vendas confirmadas. Tickets ainda sem situação aparecem como pendência no fechamento.</p></div>
+    <p class="text-sm text-muted mt-3">@Model.Produtos.Sum(p => p.Vendidos) vendidos · @Model.Produtos.Sum(p => p.Devolvidos) devolvidos · @Model.Produtos.Sum(p => p.Cancelados) cancelados</p>
+</section>
+<section id="prestacao" class="mb-8" data-central-prestacao>
+    <div class="secao-cabecalho"><h2 class="secao-titulo">Central de prestação de contas</h2></div>
+    <label class="block mb-4">Buscar responsável <input class="form-control" type="search" data-busca-responsavel placeholder="Nome do responsável…" /></label>
+    @if (Model.Responsaveis.Count == 0) { <p class="card p-4 text-muted">Distribua faixas de tickets para começar a prestação de contas.</p> }
+    <div class="grid gap-4 lg:grid-cols-2">
+    @foreach (var conta in Model.Responsaveis)
+    {
+        <article class="ui-registro p-4" data-conta-responsavel="@conta.Nome">
+            <div class="flex justify-between gap-3 mb-3"><h3 class="font-medium">@conta.Nome</h3><span class="badge @(conta.Situacao == "Quitado" ? "badge-success" : "badge-neutral")">@conta.Situacao</span></div>
+            <dl class="grid grid-cols-3 gap-2 text-sm mb-3"><div><dt>Devido</dt><dd>@conta.Devido.ToString("C2")</dd></div><div><dt>Prestado</dt><dd>@conta.Prestado.ToString("C2")</dd></div><div><dt>Pendente</dt><dd class="font-medium">@conta.Pendente.ToString("C2")</dd></div></dl>
+            @foreach (var faixa in conta.Faixas)
+            {
+                <p class="text-sm mb-2">@faixa.Produto · <span class="font-mono">@faixa.Faixa</span> · @faixa.Recebidos recebidos · @faixa.Preco.ToString("C2")</p>
+                @if (faixa.Vendidos is not null) { <p class="text-sm text-muted mb-3">@faixa.Vendidos vendidos · @faixa.Devolvidos devolvidos</p> }
+                @if (Model.PermiteOperacoes && (faixa.Vendidos ?? 0) + (faixa.Devolvidos ?? 0) < faixa.Recebidos)
+                {
+                    <details class="mb-3"><summary class="cursor-pointer text-sm font-medium">Registrar vendidos / devolvidos</summary><form class="grid gap-2 mt-2" hx-post="@(rota)/Situacao">
+                        <input type="hidden" name="loteId" value="@faixa.LoteId" /><input type="hidden" name="faixaId" value="@faixa.Id" />
+                        <label>Total vendido até agora <input class="form-control" name="vendidos" type="number" min="@(faixa.Vendidos ?? 0)" max="@faixa.Recebidos" value="@(faixa.Vendidos ?? 0)" required /></label>
+                        <label>Total devolvido até agora <input class="form-control" name="devolvidos" type="number" min="@(faixa.Devolvidos ?? 0)" max="@faixa.Recebidos" value="@(faixa.Devolvidos ?? 0)" required /></label>
+                        <label>Registrado por <input class="form-control" name="operador" required maxlength="150" /></label>
+                        <p class="text-xs text-muted">@(faixa.Recebidos - (faixa.Vendidos ?? 0) - (faixa.Devolvidos ?? 0)) tickets ainda em posse. Informe os totais acumulados; cada atualização fica no histórico. A soma precisa fechar com os recebidos antes do fechamento.</p>
+                        <button class="btn btn-outline btn-sm">Confirmar situação</button>
+                    </form></details>
+                }
+            }
+            @if (Model.PermiteOperacoes && ab is not null && conta.Pendente > 0m)
+            {
+                <details><summary class="cursor-pointer font-medium">Prestar conta</summary>
+                <form class="grid gap-3 mt-3" hx-post="@(rota)/Receber" data-prestacao-preview data-saldo="@conta.Pendente.ToString(System.Globalization.CultureInfo.InvariantCulture)" data-prestado="@conta.Prestado.ToString(System.Globalization.CultureInfo.InvariantCulture)">
+                    <input type="hidden" name="responsavel" value="@conta.Nome" />
+                    <input type="hidden" name="requisicaoId" value="@Guid.NewGuid()" />
+                    <label>Valor entregue agora <input class="form-control" name="entregue" inputmode="decimal" placeholder="0,00" required autocomplete="off" /></label>
+                    <label>Forma de recebimento <select class="form-control" name="forma"><option value="1">Dinheiro</option><option value="2">PIX</option><option value="3">Transferência</option><option value="4">Outro</option></select></label>
+                    <label>Recebido por <input class="form-control" name="operador" required maxlength="150" /></label>
+                    <label>Observação <input class="form-control" name="observacao" maxlength="500" /></label>
+                    <p class="text-sm text-muted" data-preview-saida>Informe o valor para visualizar o saldo após este lançamento.</p>
+                    <button class="btn btn-primary">Confirmar prestação</button>
+                </form></details>
+            }
+            <details class="mt-3"><summary class="cursor-pointer text-sm">Histórico de recebimentos</summary>
+                @foreach (var mov in Model.Caixa.Movimentacoes.Where(m => string.Equals(m.Responsavel, conta.Nome, StringComparison.OrdinalIgnoreCase)))
+                { <p class="text-sm mt-2">@mov.Data.ToOffset(TimeSpan.FromHours(-3)).ToString("dd/MM/yyyy HH:mm") · @mov.Valor.ToString("C2") · @mov.Forma · @mov.Operador @(mov.OriginalId is null ? "" : "· Estorno")</p> }
+            </details>
+        </article>
+    }
+    </div>
+    <p class="hidden card p-4 mt-3" data-busca-vazia>Nenhum responsável encontrado.</p>
+</section>
+<section id="caixa" class="mb-8">
+    <div class="secao-cabecalho"><h2 class="secao-titulo">Caixa da edição</h2></div>
+    @if (ab is null && Model.PermiteOperacoes)
+    {
+        <form class="card p-4 grid gap-3 sm:grid-cols-2" hx-post="@(rota)/Abertura">
+            <label>Fundo de troco <input class="form-control" name="troco" inputmode="decimal" value="0,00" required /></label>
+            <label>Responsável pela abertura <input class="form-control" name="operador" required maxlength="150" /></label>
+            <label>Observação <input class="form-control" name="observacao" maxlength="500" /></label>
+            <p class="text-sm text-muted">O fundo de troco fica separado da receita. Recebimentos anteriores serão preservados na forma “Outro”, pois o cadastro anterior não informava a forma.</p>
+            <button class="btn btn-primary">Abrir caixa</button>
+        </form>
+    }
+    else if (ab is not null)
+    {
+        <p class="text-sm text-muted mb-3">Aberto por @ab.Operador em @ab.Data.ToOffset(TimeSpan.FromHours(-3)).ToString("dd/MM/yyyy HH:mm") · troco @ab.FundoTroco.ToString("C2")</p>
+        <div class="indicadores mb-4">@foreach (var forma in Enum.GetValues<FormaRecebimento>()) { <div class="indicador"><div><p class="indicador-valor">@Model.Total(forma).ToString("C2")</p><p class="indicador-rotulo">@forma</p></div></div> }</div>
+        <details class="card p-4"><summary class="font-medium cursor-pointer">Movimentações e estornos · @Model.Caixa.Movimentacoes.Count</summary>
+        @foreach (var mov in Model.Caixa.Movimentacoes.OrderByDescending(m => m.Data))
+        {
+            <div class="py-3 border-b"><p class="font-medium">@mov.Responsavel · @mov.Valor.ToString("C2") · @mov.Forma @(mov.OriginalId is null ? "" : "· ESTORNO")</p><p class="text-sm text-muted">@mov.Data.ToOffset(TimeSpan.FromHours(-3)).ToString("dd/MM/yyyy HH:mm") · @mov.Operador · @mov.Observacao</p>
+                @if (Model.PermiteOperacoes && mov.OriginalId is null && !Model.Caixa.Movimentacoes.Any(m => m.OriginalId == mov.Id))
+                { <details class="mt-2"><summary class="cursor-pointer text-sm">Estornar lançamento</summary><form class="grid gap-2 mt-2" hx-post="@(rota)/Estorno" hx-confirm="Confirmar o estorno? O lançamento original permanecerá no histórico."><input type="hidden" name="lancamento" value="@mov.Id" /><label>Motivo <input class="form-control" name="motivo" required minlength="5" maxlength="500" /></label><label>Estornado por <input class="form-control" name="operador" required maxlength="150" /></label><button class="btn btn-outline btn-sm">Confirmar estorno</button></form></details> }
+            </div>
+        }
+        </details>
+    }
+</section>
+<section id="fechamento" class="mb-8">
+    <div class="secao-cabecalho"><h2 class="secao-titulo">Conferência e fechamento</h2></div>
+    <div class="grid gap-3 sm:grid-cols-2 mb-4">@foreach (var produto in Model.Produtos) { <div class="card p-4"><h3 class="font-medium">@produto.Nome</h3><p class="text-sm text-muted">@produto.Gerados gerados · @produto.Vendidos vendidos · @produto.Devolvidos devolvidos · @produto.Cancelados cancelados</p><p class="font-medium">Devido @produto.Valor.ToString("C2")</p></div> }</div>
+    @if (Model.PermiteOperacoes && Model.Disponiveis.Count > 0)
+    {
+        <details class="card p-4 mb-4"><summary class="cursor-pointer font-medium">Resolver tickets livres não utilizados</summary>
+            @foreach (var disponivel in Model.Disponiveis)
+            {
+                <form class="grid gap-3 mt-4" hx-post="@(rota)/CancelarTickets" hx-confirm="Cancelar estes tickets? O cancelamento ficará no histórico e os números não serão reutilizados.">
+                    <p class="text-sm">@disponivel.Produto · lote @disponivel.LoteId · livres @disponivel.Inicial.ToString("D3")–@disponivel.Final.ToString("D3")</p>
+                    <input type="hidden" name="loteId" value="@disponivel.LoteId" />
+                    <div class="grid gap-3 sm:grid-cols-2"><label>Número inicial <input class="form-control" name="inicial" type="number" min="@disponivel.Inicial" max="@disponivel.Final" value="@disponivel.Inicial" required /></label><label>Número final <input class="form-control" name="final" type="number" min="@disponivel.Inicial" max="@disponivel.Final" value="@disponivel.Final" required /></label></div>
+                    <label>Motivo <input class="form-control" name="motivo" required minlength="5" maxlength="500" /></label><label>Responsável pelo cancelamento <input class="form-control" name="operador" required maxlength="150" /></label>
+                    <button class="btn btn-outline">Cancelar tickets não utilizados</button>
+                </form>
+            }
+        </details>
+    }
+    @if (Model.Pendencias.Count > 0) { <div class="card p-4 mb-4"><h3 class="font-medium">Existem pendências</h3><ul class="mt-2 text-sm">@foreach (var pendencia in Model.Pendencias) { <li>@pendencia</li> }</ul></div> }
+    @if (ab is not null && fechado is null && Model.PermiteOperacoes)
+    {
+        <form class="card p-4 grid gap-3 mb-4" hx-post="@(rota)/Conferencia" data-contagem-caixa data-teorico="@Model.DinheiroTeorico.ToString(System.Globalization.CultureInfo.InvariantCulture)">
+            <p class="font-medium">Dinheiro teórico no caixa: @Model.DinheiroTeorico.ToString("C2")</p>
+            <p class="text-sm text-muted">Fundo de troco @ab.FundoTroco.ToString("C2") + recebimentos em dinheiro @Model.Total(FormaRecebimento.Dinheiro).ToString("C2")</p>
+            <details><summary class="cursor-pointer">Contagem opcional de cédulas e moedas</summary><div class="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-3">
+                @foreach (var valor in new decimal[] { 200m, 100m, 50m, 20m, 10m, 5m, 2m, 1m, .5m, .25m, .1m, .05m })
+                { <label class="text-sm">@valor.ToString("C2") × <input class="form-control" type="number" min="0" max="100000" value="0" data-cedula="@valor.ToString(System.Globalization.CultureInfo.InvariantCulture)" /></label> }
+            </div></details>
+            <label>Dinheiro contado <input class="form-control" name="contado" inputmode="decimal" required value="@(cf?.Contado.ToString("N2") ?? "")" /></label>
+            <p class="font-medium" data-diferenca-caixa>Diferença: @(cf is null ? "—" : (cf.Contado - cf.Teorico).ToString("C2"))</p>
+            <label>Justificativa da diferença <input class="form-control" name="justificativa" maxlength="500" /></label>
+            <label>Conferido por <input class="form-control" name="operador" required maxlength="150" /></label>
+            <button class="btn btn-outline">Registrar conferência</button>
+        </form>
+        <form class="card p-4 grid gap-3" hx-post="@(rota)/Fechamento" hx-confirm="Fechar definitivamente esta edição? As operações serão bloqueadas.">
+            <p class="text-sm text-muted">O fechamento exige uma conferência atualizada e bloqueia alterações posteriores em produtos, tickets, distribuições, vendas, prestações e valores.</p>
+            @if (Model.Pendencias.Count > 0) { <label><input type="checkbox" name="excepcional" value="true" /> Fechar com pendências (excepcional)</label><label>Motivo administrativo <input class="form-control" name="motivo" maxlength="500" /></label><label>Justificativa <input class="form-control" name="justificativa" maxlength="500" /></label> }
+            <label>Responsável pelo fechamento <input class="form-control" name="operador" required maxlength="150" /></label>
+            <button class="btn btn-primary" disabled="@(Model.SituacaoCaixa != SituacaoCaixa.EmConferencia)">Fechar caixa</button>
+        </form>
+    }
+    @if (fechado is not null)
+    {
+        <div class="card p-4"><h3 class="font-medium">Caixa fechado</h3><p class="text-sm">@fechado.Operador · @fechado.Data.ToOffset(TimeSpan.FromHours(-3)).ToString("dd/MM/yyyy HH:mm")</p><p class="text-sm">@fechado.Motivo @fechado.Justificativa</p>
+        <form method="post" action="@(rota)/Relatorio" target="_blank" data-eventos-documento class="mt-3">@Html.AntiForgeryToken()<input type="hidden" name="__estadoEventos" /><button class="btn btn-primary">Gerar relatório PDF A4</button></form></div>
+    }
+</section>
+<section id="historico" class="card p-4"><h2 class="secao-titulo">Histórico da edição</h2>
+    @foreach (var registro in Model.Caixa.Historico.OrderByDescending(h => h.Data))
+    { <div class="border-b py-3"><p class="font-medium">@registro.Acao</p><p class="text-xs text-muted">@registro.Data.ToOffset(TimeSpan.FromHours(-3)).ToString("dd/MM/yyyy HH:mm") · @registro.Operador</p><p class="text-sm">@registro.Antes → @registro.Depois</p></div> }
+    @if (Model.Caixa.Historico.Count == 0) { <p class="text-sm text-muted mt-3">As novas operações aparecerão aqui.</p> }
+</section>

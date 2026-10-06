@@ -1,0 +1,176 @@
+@model DizimistasIndexViewModel
+@{
+    ViewData["Title"] = "Dizimistas";
+    ViewData["Descricao"] = "Gerencie os dizimistas da Paróquia São Dimas e de suas capelas.";
+    var filtro = Model.Filtro;
+    var resultado = Model.Resultado;
+    var filtrando = filtro.Busca is not null || filtro.ComunidadeId is not null;
+
+    void ColunaOrdenavel(string titulo, OrdenacaoDizimistas coluna)
+    {
+        <th scope="col" aria-sort="@Model.AriaSort(coluna)">
+            <a href="@Url.Action("Index", Model.RotaOrdenacao(coluna))" class="coluna-ordenavel">
+                @titulo
+                @if (filtro.Ordenacao == coluna)
+                {
+                    <svg class="icone size-3.5" aria-hidden="true"><use href="/icons/lucide.svg#@(filtro.Descendente ? "arrow-down" : "arrow-up")" /></svg>
+                }
+            </a>
+        </th>
+    }
+}
+
+@section Scripts {
+    <script type="module" src="~/js/envelopes-lote.js" asp-append-version="true"></script>
+}
+
+@section Acoes {
+    <a href="/Cadastros/Importar" class="btn btn-outline">Importar planilha</a>
+    <a href="/Cadastros/Exportar" class="btn btn-outline">Exportar CSV</a>
+    <a asp-action="Novo" class="btn btn-primary">
+        <svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#plus" /></svg>Novo dizimista
+    </a>
+}
+
+<form method="get" asp-action="Index" class="ui-filtros mb-6 flex flex-col gap-3 p-4 md:flex-row md:items-end" role="search">
+    <div class="form-field flex-1">
+        <label for="busca" class="form-label">Pesquisar</label>
+        <input id="busca" name="busca" type="search" value="@filtro.Busca" class="form-control" placeholder="Nome, código, telefone ou CPF" />
+    </div>
+
+    <div class="form-field md:w-72">
+        <label for="comunidadeId" class="form-label">Comunidade</label>
+        <select id="comunidadeId" name="comunidadeId" class="form-control">
+            <option value="">Todas as comunidades</option>
+            @foreach (var comunidade in Model.Comunidades)
+            {
+                <option value="@comunidade.Id" selected="@(comunidade.Id == filtro.ComunidadeId)">@comunidade.Nome</option>
+            }
+        </select>
+    </div>
+
+    <input type="hidden" name="ordenacao" value="@filtro.Ordenacao" />
+    <input type="hidden" name="descendente" value="@filtro.Descendente.ToString().ToLowerInvariant()" />
+
+    <div class="flex gap-2">
+        <button type="submit" class="btn btn-primary">
+            <svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#search" /></svg>Filtrar
+        </button>
+        @if (filtrando)
+        {
+            <a asp-action="Index" class="btn btn-outline">Limpar</a>
+        }
+    </div>
+</form>
+
+@if (resultado.Total == 0)
+{
+    <section class="card">
+        <div class="empty-state">
+            <div class="empty-state-icone">
+                <svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#users" /></svg>
+            </div>
+            @if (filtrando)
+            {
+                <h2 class="empty-state-titulo">Nenhum dizimista encontrado</h2>
+                <p class="empty-state-descricao">Não existem registros para a pesquisa e os filtros selecionados.</p>
+                <div class="empty-state-acoes"><a asp-action="Index" class="btn btn-outline">Limpar filtros</a></div>
+            }
+            else
+            {
+                <h2 class="empty-state-titulo">Nenhum dizimista cadastrado</h2>
+                <p class="empty-state-descricao">Cadastre o primeiro dizimista da paróquia.</p>
+                <div class="empty-state-acoes"><a asp-action="Novo" class="btn btn-primary">Cadastrar dizimista</a></div>
+            }
+        </div>
+    </section>
+}
+else
+{
+    var comunidadeFiltrada = Model.Comunidades.FirstOrDefault(comunidade => comunidade.Id == filtro.ComunidadeId);
+
+    @* Envelopes em lote: somente identificadores são enviados; os dados impressos vêm do backend. *@
+    <form id="form-envelopes" method="get" asp-controller="Envelopes" asp-action="Lote" target="_blank"></form>
+
+    <div class="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between" data-envelopes-lote>
+        <p class="text-sm text-muted" aria-live="polite" data-envelopes-contagem>Selecione dizimistas para gerar envelopes em lote.</p>
+        <div class="flex flex-wrap gap-2">
+            @if (comunidadeFiltrada is not null)
+            {
+                <a asp-controller="Envelopes" asp-action="Lote" asp-route-comunidadeId="@comunidadeFiltrada.Id" target="_blank" rel="noopener" class="btn btn-outline btn-sm">
+                    <svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#mail" /></svg>Envelopes dos ativos — @comunidadeFiltrada.Nome
+                </a>
+            }
+            <button type="submit" form="form-envelopes" class="btn btn-primary btn-sm" data-envelopes-gerar disabled>
+                <svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#mail" /></svg>Gerar envelopes
+            </button>
+        </div>
+    </div>
+
+    <div class="table-wrapper">
+        <table class="table">
+            <caption class="sr-only">Dizimistas</caption>
+            <thead>
+                <tr>
+                    <th scope="col" class="w-10">
+                        <input type="checkbox" class="form-check-caixa" aria-label="Selecionar todos desta página" data-envelopes-todos />
+                    </th>
+                    @{ ColunaOrdenavel("Código", OrdenacaoDizimistas.Codigo); }
+                    @{ ColunaOrdenavel("Nome", OrdenacaoDizimistas.Nome); }
+                    @{ ColunaOrdenavel("Comunidade", OrdenacaoDizimistas.Comunidade); }
+                    <th scope="col">Telefone</th>
+                    <th scope="col">Status</th>
+                    <th scope="col"><span class="sr-only">Ações</span></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var dizimista in resultado.Itens)
+                {
+                    <tr>
+                        <td>
+                            <input type="checkbox" name="ids" value="@dizimista.Id" form="form-envelopes" class="form-check-caixa"
+                                   aria-label="Selecionar @dizimista.Nome" data-envelopes-item />
+                        </td>
+                        <td class="font-mono text-muted tabular-nums">@dizimista.Codigo</td>
+                        <td><a asp-action="Detalhes" asp-route-id="@dizimista.Id" class="font-medium hover:text-primary-700">@dizimista.Nome</a></td>
+                        <td>@dizimista.Comunidade</td>
+                        <td class="whitespace-nowrap tabular-nums">@(dizimista.Telefone ?? "—")</td>
+                        <td><partial name="_StatusDizimista" model="dizimista.Status" /></td>
+                        <td>
+                            <div class="table-acoes">
+                                <a asp-action="Detalhes" asp-route-id="@dizimista.Id" class="btn btn-ghost btn-sm btn-icone" aria-label="Ver @dizimista.Nome">
+                                    <svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#eye" /></svg>
+                                </a>
+                                <a asp-action="Editar" asp-route-id="@dizimista.Id" class="btn btn-ghost btn-sm btn-icone" aria-label="Editar @dizimista.Nome">
+                                    <svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#pencil" /></svg>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <nav class="paginacao" aria-label="Paginação">
+        <p class="text-sm text-muted">
+            Exibindo <strong class="font-medium text-foreground">@resultado.PrimeiroItem–@resultado.UltimoItem</strong>
+            de <strong class="font-medium text-foreground">@resultado.Total</strong> dizimistas
+        </p>
+        <div class="flex items-center gap-2">
+            @if (resultado.TemAnterior)
+            {
+                <a href="@Url.Action("Index", Model.Rota(pagina: resultado.Pagina - 1))" class="btn btn-outline btn-sm" rel="prev">
+                    <svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#chevron-left" /></svg>Anterior
+                </a>
+            }
+            <span class="text-sm text-muted" aria-current="page">Página @resultado.Pagina de @resultado.TotalPaginas</span>
+            @if (resultado.TemProxima)
+            {
+                <a href="@Url.Action("Index", Model.Rota(pagina: resultado.Pagina + 1))" class="btn btn-outline btn-sm" rel="next">
+                    Próxima<svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#chevron-right" /></svg>
+                </a>
+            }
+        </div>
+    </nav>
+}

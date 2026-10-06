@@ -1,0 +1,82 @@
+@model DizimistaFormularioViewModel
+
+<div asp-validation-summary="ModelOnly" class="alerta-erro mb-6"></div>
+
+<div class="ui-folha">
+<fieldset class="ui-formulario-secao">
+    <legend>Dados pessoais</legend>
+    <p class="ui-formulario-nota">Identificação do dizimista. Campos com * são obrigatórios.</p>
+    <div class="grid gap-5 md:grid-cols-2">
+        <div class="form-field md:col-span-2">
+            <label asp-for="Nome" class="form-label">Nome completo <span class="obrigatorio" aria-hidden="true">*</span></label>
+            <input asp-for="Nome" class="form-control" autocomplete="name" required />
+            <span asp-validation-for="Nome" class="form-error"></span>
+        </div>
+
+        <div class="form-field">
+            <label asp-for="Cpf" class="form-label"></label>
+            <input asp-for="Cpf" class="form-control" inputmode="numeric" autocomplete="off" placeholder="000.000.000-00" />
+            <span asp-validation-for="Cpf" class="form-error"></span>
+        </div>
+
+        <div class="form-field">
+            <label asp-for="DataNascimento" class="form-label"></label>
+            <input asp-for="DataNascimento" type="date" class="form-control" />
+            <span asp-validation-for="DataNascimento" class="form-error"></span>
+        </div>
+    </div>
+</fieldset>
+<fieldset class="ui-formulario-secao">
+    <legend>Contato e endereço</legend>
+    <p class="ui-formulario-nota">Informações para localizar e entrar em contato com o dizimista.</p>
+    <div class="grid gap-5 md:grid-cols-2">
+        <div class="form-field">
+            <label asp-for="Telefone" class="form-label"></label>
+            <input asp-for="Telefone" type="tel" class="form-control" autocomplete="tel" placeholder="(00) 00000-0000" />
+            <span asp-validation-for="Telefone" class="form-error"></span>
+        </div>
+        <div class="form-field">
+            <label asp-for="Endereco" class="form-label"></label>
+            <input asp-for="Endereco"  class="form-control" />
+            <span asp-validation-for="Endereco" class="form-error"></span>
+        </div>
+        <div class="form-field">
+            <label asp-for="Cep" class="form-label"></label>
+            <input asp-for="Cep"  class="form-control" />
+            <span asp-validation-for="Cep" class="form-error"></span>
+        </div>
+        <div class="form-field">
+            <label asp-for="Bairro" class="form-label"></label>
+            <input asp-for="Bairro"  class="form-control" />
+            <span asp-validation-for="Bairro" class="form-error"></span>
+        </div>
+
+    </div>
+</fieldset>
+
+<fieldset class="ui-formulario-secao">
+    <legend>Informações paroquiais</legend>
+    <p class="ui-formulario-nota">Comunidade de referência e situação do dizimista.</p>
+    <div class="grid gap-5 md:grid-cols-3">
+        <div class="form-field">
+            <label asp-for="ComunidadeId" class="form-label">Comunidade <span class="obrigatorio" aria-hidden="true">*</span></label>
+            <select asp-for="ComunidadeId" asp-items="Model.Comunidades" class="form-control" required>
+                <option value="">Selecione uma comunidade...</option>
+            </select>
+            <span asp-validation-for="ComunidadeId" class="form-error"></span>
+        </div>
+
+        <div class="form-field">
+            <label asp-for="DataEntrada" class="form-label">Data de entrada <span class="obrigatorio" aria-hidden="true">*</span></label>
+            <input asp-for="DataEntrada" type="date" class="form-control" required />
+            <span asp-validation-for="DataEntrada" class="form-error"></span>
+        </div>
+
+        <div class="form-field">
+            <label asp-for="Status" class="form-label">Status <span class="obrigatorio" aria-hidden="true">*</span></label>
+            <select asp-for="Status" asp-items="Html.GetEnumSelectList<StatusDizimista>()" class="form-control" required></select>
+            <span asp-validation-for="Status" class="form-error"></span>
+        </div>
+    </div>
+</fieldset>
+</div>

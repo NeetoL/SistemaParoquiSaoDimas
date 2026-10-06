@@ -1,0 +1,21 @@
+@model int
+@* Casca da página: o conteúdo depende dos dados guardados no servidor e é carregado por HTMX. *@
+
+<div data-eventos>
+    @Html.AntiForgeryToken()
+
+    <div id="evento-conteudo" hx-post="@Url.Action("Conteudo", new { id = Model })" hx-trigger="load, eventos:atualizar from:body">
+        <partial name="_Carregando" />
+    </div>
+
+    @if (ViewData["AbrirEdicao"] is true)
+    {
+        <div hx-post="@Url.Action("Editar", new { id = Model })" hx-trigger="load delay:300ms" hx-target="#modal-eventos-conteudo"></div>
+    }
+
+    <partial name="_ModalEventos" />
+</div>
+
+@section Scripts {
+    <partial name="_ScriptsModulo" />
+}

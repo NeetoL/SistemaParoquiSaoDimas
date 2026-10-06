@@ -1,0 +1,128 @@
+@using System.Security.Claims
+@model PainelParoquialViewModel
+@{
+    ViewData["Title"] = "Visão da paróquia";
+    ViewData["Descricao"] = "Pessoas, atividades e próximos encontros em um só lugar.";
+    var perfil = User.FindFirstValue(ClaimTypes.Role)!;
+    var podeCadastro = perfil != "Coordenador";
+    var contagens = (Dictionary<string,int>)ViewData["ContagensRotina"]!;
+    var compromissos = (RegistroParoquial[])ViewData["ProximosCompromissos"]!;
+    var semana = (RegistroParoquial[])ViewData["AgendaSemana"]!;
+    var hoje = (DateOnly)ViewData["HojePainel"]!;
+    var modulos = CatalogoParoquial.Modulos.Where(m=>m.Perfis.Contains(perfil)).ToArray();
+    var maior = Math.Max(1, modulos.Select(m=>contagens.GetValueOrDefault(m.Chave)).DefaultIfEmpty().Max());
+    var tons = new[]{"azul","menta","violeta","ambar"};
+    var financeiro = ViewData["FinanceiroPainel"] as FinanceiroPainel;
+    var indicadores = Model.PainelEventos.Indicadores;
+    var distribuicao = indicadores.TicketsGerados == 0 ? 0 : Math.Clamp((int)Math.Round(100m * indicadores.TicketsDistribuidos / indicadores.TicketsGerados),0,100);
+}
+@section Acoes {
+    @if(podeCadastro){<a asp-controller="Dizimistas" asp-action="Novo" class="btn btn-primary">Cadastrar dizimista</a>}
+    <a href="/Gestao/agenda/Novo" class="btn btn-outline">Novo compromisso</a>
+}
+<div class="dashboard">
+<form method="get" class="dashboard-filtros" aria-label="Período do dashboard"><div><label for="dashboard-ano">Período do relatório</label><select id="dashboard-ano" name="ano" class="form-control">@for(var anoItem=hoje.Year;anoItem>=hoje.Year-4;anoItem--){<option value="@anoItem" selected="@(anoItem==(int)ViewData["AnoPainel"]!)">Ano de @anoItem</option>}</select><button class="btn btn-outline btn-sm">Aplicar</button><span class="dashboard-frequencia">Comparação mensal</span></div><a href="/Relatorios" class="btn btn-primary btn-icone" aria-label="Abrir relatórios"><svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#chart-no-axes-combined" /></svg></a></form>
+<section class="dashboard-metricas" aria-label="Resumo da paróquia">
+    <a class="dashboard-metrica" data-tone="azul" href="@(podeCadastro?"/Dizimistas":"/Gestao/agenda")">
+        <span class="dashboard-metrica-topo"><span>Dizimistas</span><svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#users" /></svg></span>
+        <strong>@Model.Dizimistas.ToString("N0")</strong><small>Pessoas cadastradas <span aria-hidden="true">↗</span></small>
+    </a>
+    <a class="dashboard-metrica" data-tone="menta" href="#comunidades-painel">
+        <span class="dashboard-metrica-topo"><span>Comunidades</span><svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#map-pin" /></svg></span>
+        <strong>@Model.Comunidades.Count</strong><small>@Model.Comunidades.Count(c=>c.Ativa) ativas <span aria-hidden="true">↗</span></small>
+    </a>
+    <a class="dashboard-metrica" data-tone="violeta" href="/Eventos">
+        <span class="dashboard-metrica-topo"><span>Eventos ativos</span><svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#calendar-days" /></svg></span>
+        <strong>@indicadores.EventosAtivos</strong><small>@Model.PainelEventos.Eventos.Count edições cadastradas <span aria-hidden="true">↗</span></small>
+    </a>
+    <a class="dashboard-metrica" data-tone="ambar" href="/Eventos">
+        <span class="dashboard-metrica-topo"><span>Tickets gerados</span><svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#ticket" /></svg></span>
+        <strong>@indicadores.TicketsGerados.ToString("N0")</strong><small>@indicadores.TicketsDistribuidos.ToString("N0") distribuídos <span aria-hidden="true">↗</span></small>
+    </a>
+</section>
+<div class="dashboard-grade">
+    <div class="dashboard-coluna">
+    @if(financeiro is not null){
+        <partial name="_FinanceiroPainel" model="financeiro" />
+    }else{
+    <section class="dashboard-painel" aria-labelledby="rotina-painel">
+        <header class="dashboard-cabecalho"><div><span class="dashboard-sobrelinha">VISÃO OPERACIONAL</span><h2 id="rotina-painel">Cadastros por área</h2></div><span class="dashboard-etiqueta">Seu perfil: @perfil</span></header>
+        <p class="dashboard-nota">Registros ativos nas áreas disponíveis para você.</p>
+        <div class="dashboard-areas">
+        @for(var i=0;i<modulos.Length;i++){
+            var modulo = modulos[i];
+            var quantidade = contagens.GetValueOrDefault(modulo.Chave);
+            <a class="dashboard-area" data-tone="@tons[i%tons.Length]" href="/Gestao/@modulo.Chave">
+                <span class="dashboard-icone"><svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#@modulo.Icone" /></svg></span>
+                <span class="dashboard-area-nome">@modulo.Nome</span>
+                <span class="dashboard-barra" aria-hidden="true"><progress max="@maior" value="@quantidade"></progress></span>
+                <strong>@quantidade.ToString("N0")</strong><svg class="icone dashboard-seta" aria-hidden="true"><use href="/icons/lucide.svg#arrow-up-right" /></svg>
+            </a>
+        }
+        </div>
+        <footer class="dashboard-rodape"><svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#layers" /></svg>Contagens de cadastros · valores financeiros ficam no módulo Financeiro.</footer>
+    </section>
+    }
+
+
+    </div>
+    <div class="dashboard-coluna dashboard-agenda-coluna">
+    <section class="dashboard-painel dashboard-calendario" data-santos-painel data-hoje="@hoje.ToString("yyyy-MM-dd")" aria-labelledby="agenda-painel">
+        <header class="dashboard-cabecalho"><div><span class="dashboard-sobrelinha">@hoje.ToString("MMMM yyyy").ToUpper()</span><h2 id="agenda-painel">Agenda e santos do dia</h2></div><a href="/Gestao/agenda" class="btn btn-ghost btn-icone" aria-label="Abrir agenda"><svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#arrow-up-right" /></svg></a></header>
+        <div class="dashboard-calendario-corpo"><div>
+        <nav class="dashboard-semana" aria-label="Agenda dos próximos sete dias">
+        @for(var i=0;i<7;i++){
+            var dia = hoje.AddDays(i);
+            var quantidade = semana.Count(r=>DateOnly.FromDateTime(DateTime.Parse(r.Campos["inicio"],System.Globalization.CultureInfo.InvariantCulture))==dia);
+            <a href="/Gestao/agenda?de=@dia.ToString("yyyy-MM-dd")&amp;ate=@dia.ToString("yyyy-MM-dd")" class="@(i==0?"dia-atual":"")" aria-label="@dia.ToString("dd 'de' MMMM"): @quantidade compromisso(s)">
+                <small>@dia.ToString("ddd").TrimEnd('.')</small><strong>@dia.Day</strong><span class="@(quantidade>0?"dia-com-atividade":"")" aria-hidden="true"></span>
+            </a>
+        }
+        </nav>
+        <div class="dashboard-compromissos"><h3 class="dashboard-sobrelinha mb-3">PRÓXIMOS COMPROMISSOS</h3>
+        @foreach(var compromisso in compromissos){
+            var inicio = DateTime.Parse(compromisso.Campos["inicio"],System.Globalization.CultureInfo.InvariantCulture);
+            <a class="dashboard-compromisso" href="/Gestao/agenda/@compromisso.Id">
+                <span class="dashboard-horario"><strong>@inicio.ToString("HH:mm")</strong><small>@inicio.ToString("dd MMM")</small></span>
+                <span><strong>@compromisso.Campos["titulo"]</strong><small>@compromisso.Campos["local"]</small></span>
+                <svg class="icone dashboard-seta" aria-hidden="true"><use href="/icons/lucide.svg#chevron-right" /></svg>
+            </a>
+        }
+        @if(compromissos.Length==0){<div class="dashboard-vazio"><svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#calendar-clock" /></svg><strong>Agenda livre por enquanto</strong><p>Organize os próximos encontros da comunidade.</p><a href="/Gestao/agenda/Novo" class="btn btn-outline btn-sm">Adicionar compromisso</a></div>}
+        </div>
+        <a href="/Calendario" class="dashboard-link-rodape"><svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#calendar" /></svg>Consultar calendário da fé <span aria-hidden="true">↗</span></a>
+        </div><aside class="dashboard-santos" aria-label="Santos e celebrações do dia">
+            <span class="dashboard-sobrelinha">NO CALENDÁRIO DO BRASIL</span>
+            <h3 data-santos-data>@hoje.ToString("dd 'de' MMMM")</h3>
+            <div data-santos-lista aria-live="polite" aria-busy="true"><p class="dashboard-nota">Carregando santos e celebrações…</p></div>
+            <a class="dashboard-link-rodape" data-santos-martirologio href="https://liturgia.pt/martirologio/elogio.php?data=@hoje.ToString("yyyy-MM-dd")" target="_blank" rel="noopener noreferrer">Consultar outros santos e beatos <span aria-hidden="true">↗</span></a>
+            <p class="dashboard-nota mt-3">O calendário litúrgico mostra as celebrações do Brasil. O Martirológio amplia a consulta aos santos de cada dia.</p>
+        </aside></div>
+    </section>
+
+    </div>
+</div>
+
+<div class="dashboard-rede">    <section class="dashboard-painel" aria-labelledby="eventos-painel">
+        <header class="dashboard-cabecalho"><div><span class="dashboard-sobrelinha">EVENTOS & TICKETS</span><h2 id="eventos-painel">Edições e distribuição</h2></div><a href="/Eventos" class="btn btn-ghost btn-sm">Ver todos</a></header>
+        <div class="dashboard-tickets"><div><span>Tickets distribuídos</span><strong>@distribuicao<small>%</small></strong></div><progress max="100" value="@distribuicao" aria-label="Percentual de tickets distribuídos"></progress><small>@indicadores.TicketsDistribuidos.ToString("N0") de @indicadores.TicketsGerados.ToString("N0") tickets gerados</small></div>
+        @foreach(var evento in Model.PainelEventos.Eventos.OrderByDescending(e=>e.DataInicio).Take(3)){
+            <a class="dashboard-edicao" href="/Eventos/@evento.Id"><span class="dashboard-data" data-tone="violeta"><small>@evento.DataInicio.ToString("MMM").ToUpper()</small><strong>@evento.DataInicio.Day</strong></span><span class="dashboard-edicao-nome"><strong>@evento.Nome</strong><small>@evento.Comunidade</small></span><span class="dashboard-etiqueta">@evento.Ano</span></a>
+        }
+        @if(Model.PainelEventos.Eventos.Count==0){<div class="dashboard-vazio"><strong>Os próximos eventos começam aqui</strong><p>Crie uma edição para organizar produtos e tickets.</p><a href="/Eventos" class="btn btn-outline btn-sm">Organizar evento</a></div>}
+    </section>
+    <section class="dashboard-painel" aria-labelledby="comunidades-painel">
+        <header class="dashboard-cabecalho"><div><span class="dashboard-sobrelinha">NOSSA REDE</span><h2 id="comunidades-painel">Comunidades</h2></div><span class="dashboard-etiqueta">@Model.Comunidades.Count unidades</span></header>
+        @for(var i=0;i<Model.Comunidades.Count;i++){
+            var comunidade=Model.Comunidades[i];
+            <a class="dashboard-comunidade" data-tone="@tons[i%tons.Length]" href="@(podeCadastro?"/Dizimistas?ComunidadeId="+comunidade.Id:"/Gestao/agenda?comunidade="+comunidade.Id)">
+                <span class="dashboard-icone"><svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#map-pin" /></svg></span>
+                <span><strong>@comunidade.Nome</strong><small><i class="@(comunidade.Ativa?"comunidade-ativa":"")" aria-hidden="true"></i>@(comunidade.Ativa?"Ativa":"Inativa")</small></span><svg class="icone dashboard-seta" aria-hidden="true"><use href="/icons/lucide.svg#chevron-right" /></svg>
+            </a>
+        }
+        @if(Model.Comunidades.Count==0){<p class="dashboard-nota py-5">Nenhuma comunidade cadastrada.</p>}
+    </section>
+</div>
+</div>
+
+@section Scripts { <script type="module" src="~/js/dashboard.js" asp-append-version="true"></script> }

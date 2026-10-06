@@ -1,0 +1,24 @@
+@model FinanceiroPainel
+@{
+    var total = Model.Formas.Sum(f=>f.Valor);
+    var invariavel = System.Globalization.CultureInfo.InvariantCulture;
+    var moeda = System.Globalization.CultureInfo.GetCultureInfo("pt-BR");
+    var acumulado = 0m;
+}
+<div class="dashboard-formas">
+    <div class="dashboard-formas-titulo"><span class="dashboard-sobrelinha">COMPOSIÇÃO DOS RECEBIMENTOS</span><h3>Como os pagamentos chegaram</h3><p class="dashboard-nota">Totais do ano selecionado, por forma de pagamento.</p></div>
+    @if(total>0){
+    <div class="dashboard-formas-corpo">
+        <div class="dashboard-donut"><svg viewBox="0 0 140 140" role="img" aria-label="Distribuição do valor recebido por forma de pagamento">
+            <circle cx="70" cy="70" r="52" class="donut-fundo" />
+            @for(var i=0;i<Model.Formas.Count;i++){var forma=Model.Formas[i];var proporcao=100m*forma.Valor/total;
+                <circle cx="70" cy="70" r="52" pathLength="100" class="donut-fatia donut-cor-@(i%5)" stroke-dasharray="@proporcao.ToString("0.###",invariavel) @((100m-proporcao).ToString("0.###",invariavel))" stroke-dashoffset="@((-acumulado).ToString("0.###",invariavel))" />
+                acumulado+=proporcao;
+            }
+        </svg><div><strong>@Model.Formas.Count</strong><span>formas</span></div></div>
+        <ul class="dashboard-formas-legenda">
+        @for(var i=0;i<Model.Formas.Count;i++){var forma=Model.Formas[i];<li><span class="donut-marcador donut-cor-@(i%5)" aria-hidden="true"></span><span>@forma.Forma<small>@((100m*forma.Valor/total).ToString("0.#",moeda))% dos recebimentos</small></span><strong>@forma.Valor.ToString("C",moeda)</strong></li>}
+        </ul>
+    </div>
+    }else{<p class="dashboard-nota py-4">Ainda não há recebimentos neste ano. O gráfico será preenchido conforme os pagamentos forem registrados.</p>}
+</div>

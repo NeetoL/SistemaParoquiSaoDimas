@@ -1,0 +1,62 @@
+@model PrestacaoFormularioViewModel
+@{
+    var p = Model.Preparacao;
+    var rota = new { eventoId = p.EventoId, loteId = p.LoteId, distribuicaoId = p.DistribuicaoId };
+}
+
+<form hx-post="@Url.Action("RegistrarPrestacao", "Tickets", rota)" hx-target="#modal-eventos-conteudo" novalidate>
+    <div class="modal-header">
+        <div>
+            <h2 class="modal-title">Prestação de contas</h2>
+            <p class="modal-description">@p.Evento — @p.Produto</p>
+        </div>
+        <button type="button" class="btn btn-ghost btn-sm btn-icone" data-modal-fechar aria-label="Fechar">
+            <svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#x" /></svg>
+        </button>
+    </div>
+
+    <div class="modal-body flex flex-col gap-5">
+        <div asp-validation-summary="ModelOnly" class="alerta-erro"></div>
+
+        <dl class="lista-dados sm:grid-cols-4">
+            <div><dt>Responsável</dt><dd>@(p.Responsavel ?? "—")</dd></div>
+            <div><dt>Faixa</dt><dd class="font-mono">@p.Faixa</dd></div>
+            <div><dt>Recebidos</dt><dd class="tabular-nums">@p.Recebidos</dd></div>
+            <div><dt>Preço</dt><dd class="tabular-nums">@p.PrecoUnitario.ToString("C2")</dd></div>
+        </dl>
+
+        <div class="grid gap-5 sm:grid-cols-3"
+             hx-post="@Url.Action("SimularPrestacao", "Tickets", rota)" hx-trigger="input delay:250ms" hx-target="#simulacao-prestacao" hx-include="closest form">
+            <div class="form-field">
+                <label asp-for="Vendidos" class="form-label">Vendidos <span class="obrigatorio" aria-hidden="true">*</span></label>
+                <input asp-for="Vendidos" type="number" min="0" class="form-control" required />
+                <span asp-validation-for="Vendidos" class="form-error"></span>
+            </div>
+            <div class="form-field">
+                <label asp-for="Devolvidos" class="form-label">Devolvidos <span class="obrigatorio" aria-hidden="true">*</span></label>
+                <input asp-for="Devolvidos" type="number" min="0" class="form-control" required />
+                <span asp-validation-for="Devolvidos" class="form-error"></span>
+            </div>
+            <div class="form-field">
+                <label asp-for="ValorEntregue" class="form-label">Valor entregue (R$) <span class="obrigatorio" aria-hidden="true">*</span></label>
+                <input asp-for="ValorEntregue" class="form-control" inputmode="decimal" required />
+                <span asp-validation-for="ValorEntregue" class="form-error"></span>
+            </div>
+        </div>
+
+        <div id="simulacao-prestacao" aria-live="polite">
+            <partial name="_SimulacaoPrestacao" model="Model" />
+        </div>
+
+        <div class="form-field">
+            <label asp-for="Justificativa" class="form-label">Justificativa</label>
+            <textarea asp-for="Justificativa" class="form-control" rows="2" placeholder="Obrigatória quando houver diferença entre o esperado e o entregue."></textarea>
+            <span asp-validation-for="Justificativa" class="form-error"></span>
+        </div>
+    </div>
+
+    <div class="modal-footer">
+        <button type="button" class="btn btn-outline" data-modal-fechar>Cancelar</button>
+        <button type="submit" class="btn btn-primary">Registrar prestação</button>
+    </div>
+</form>

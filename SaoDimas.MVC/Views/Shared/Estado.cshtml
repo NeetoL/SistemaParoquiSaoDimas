@@ -1,0 +1,30 @@
+@model int
+@{
+    var titulo = Model switch { 400 => "Confira a solicitação", 403 => "Área restrita", 404 => "Página não encontrada", _ => "Não foi possível abrir esta página" };
+    ViewData["Title"] = titulo;
+    var avulsa = ViewData["PaginaAvulsa"] is true;
+    if (avulsa) Layout = null;
+}
+@if (avulsa)
+{
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>@titulo — São Dimas</title>
+        <script src="/js/preferencias.js"></script>
+        <link rel="stylesheet" href="/css/app.css" />
+    </head>
+    <body>
+        <main class="max-w-xl mx-auto p-6">
+            <a href="/" class="login-marca mb-6">São Dimas</a>
+            <partial name="_EstadoConteudo" model="Model" view-data="ViewData" />
+        </main>
+    </body>
+    </html>
+}
+else
+{
+    <partial name="_EstadoConteudo" model="Model" view-data="ViewData" />
+}

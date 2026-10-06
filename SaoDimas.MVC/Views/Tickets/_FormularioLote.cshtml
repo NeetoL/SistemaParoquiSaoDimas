@@ -1,0 +1,47 @@
+@model LoteFormularioViewModel
+@{
+    var preparacao = Model.Preparacao;
+    var rotas = new { eventoId = preparacao.EventoId, produtoId = preparacao.ProdutoId };
+}
+
+<form hx-post="@Url.Action("GerarLote", "Tickets", rotas)" hx-target="#modal-eventos-conteudo" novalidate>
+    <div class="modal-header">
+        <div>
+            <h2 class="modal-title">Gerar lote de tickets</h2>
+            <p class="modal-description">A numeração continua a partir do último ticket gerado deste produto.</p>
+        </div>
+        <button type="button" class="btn btn-ghost btn-sm btn-icone" data-modal-fechar aria-label="Fechar">
+            <svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#x" /></svg>
+        </button>
+    </div>
+
+    <div class="modal-body flex flex-col gap-5">
+        <div asp-validation-summary="ModelOnly" class="alerta-erro"></div>
+
+        <dl class="lista-dados">
+            <div><dt>Evento</dt><dd>@preparacao.Evento</dd></div>
+            <div><dt>Produto</dt><dd>@preparacao.Produto</dd></div>
+            <div><dt>Preço</dt><dd>@preparacao.Preco.ToString("C2")</dd></div>
+            <div><dt>Número inicial</dt><dd class="font-mono">@preparacao.ProximoNumero.ToString("D3")</dd></div>
+        </dl>
+
+        <div class="form-field">
+            <label asp-for="Quantidade" class="form-label">Quantidade de tickets <span class="obrigatorio" aria-hidden="true">*</span></label>
+            <input asp-for="Quantidade" type="number" min="1" max="5000" class="form-control" required
+                   hx-post="@Url.Action("SimularLote", "Tickets", rotas)" hx-trigger="input changed delay:250ms" hx-target="#simulacao-lote" hx-swap="innerHTML" />
+            <span class="form-hint">O número final e o valor potencial são calculados automaticamente.</span>
+            <span asp-validation-for="Quantidade" class="form-error"></span>
+        </div>
+
+        <div id="simulacao-lote" aria-live="polite">
+            @if (Model.Simulacao is not null) { <partial name="_SimulacaoLote" model="Model.Simulacao" /> }
+        </div>
+    </div>
+
+    <div class="modal-footer">
+        <button type="button" class="btn btn-outline" data-modal-fechar>Cancelar</button>
+        <button type="submit" class="btn btn-primary">
+            <svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#ticket-plus" /></svg>Gerar lote
+        </button>
+    </div>
+</form>

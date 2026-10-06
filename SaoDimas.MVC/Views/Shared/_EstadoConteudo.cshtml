@@ -1,0 +1,8 @@
+@model int
+@{ var titulo = ViewData["Title"]; }
+<section class="ui-folha max-w-xl p-6" aria-labelledby="estado-titulo">
+    <span class="sobrelinha">SOLICITAÇÃO @Model</span>
+    <h2 id="estado-titulo" class="secao-titulo mt-3">@titulo</h2>
+    <p class="text-muted mt-3">@(Model switch { 400 => "A solicitação não pôde ser validada. Volte à página anterior e confira as informações.", 403 => "Seu perfil não tem permissão para acessar esta área. Consulte o administrador da paróquia se precisar desse acesso.", 404 => "Esta página não está disponível. Volte à visão da paróquia para encontrar a área que procura.", _ => "A operação não foi concluída. Tente novamente; se o problema continuar, informe o administrador da paróquia." })</p>
+    <a href="/" class="btn btn-outline mt-5">Voltar à visão da paróquia</a>
+</section>

@@ -1,0 +1,92 @@
+@model EventoFormularioViewModel
+@{
+    var edicao = Model.Id is not null;
+
+    async Task Campos()
+    {
+        <div asp-validation-summary="ModelOnly" class="alerta-erro"></div>
+        <div class="form-field"><label asp-for="Operador" class="form-label">Registrado por</label><input asp-for="Operador" class="form-control" required maxlength="150" /><span asp-validation-for="Operador" class="form-error"></span></div>
+
+        <div class="form-field">
+            <label asp-for="Nome" class="form-label">Nome <span class="obrigatorio" aria-hidden="true">*</span></label>
+            <input asp-for="Nome" class="form-control" placeholder="Ex.: Festa de Santa Teresinha" required />
+            <span asp-validation-for="Nome" class="form-error"></span>
+        </div>
+
+        <div class="form-field">
+            <label asp-for="ComunidadeId" class="form-label">Comunidade <span class="obrigatorio" aria-hidden="true">*</span></label>
+            <select asp-for="ComunidadeId" asp-items="Model.Comunidades" class="form-control" required>
+                <option value="">Selecione a comunidade...</option>
+            </select>
+            <span asp-validation-for="ComunidadeId" class="form-error"></span>
+        </div>
+
+        <div class="grid gap-5 sm:grid-cols-2">
+            <div class="form-field">
+                <label asp-for="DataInicio" class="form-label">Data inicial <span class="obrigatorio" aria-hidden="true">*</span></label>
+                <input asp-for="DataInicio" type="date" class="form-control" required />
+                <span asp-validation-for="DataInicio" class="form-error"></span>
+            </div>
+            <div class="form-field">
+                <label asp-for="DataFim" class="form-label">Data final</label>
+                <input asp-for="DataFim" type="date" class="form-control" />
+                <span asp-validation-for="DataFim" class="form-error"></span>
+            </div>
+        </div>
+
+        <div class="form-field">
+            <label asp-for="Descricao" class="form-label">Descrição</label>
+            <textarea asp-for="Descricao" class="form-control" rows="2"></textarea>
+            <span asp-validation-for="Descricao" class="form-error"></span>
+        </div>
+
+        <div class="form-field">
+            <label asp-for="Observacoes" class="form-label">Observações</label>
+            <textarea asp-for="Observacoes" class="form-control" rows="2"></textarea>
+            <span asp-validation-for="Observacoes" class="form-error"></span>
+        </div>
+    }
+}
+
+@if (edicao)
+{
+    <form hx-post="@Url.Action("Salvar", "Eventos", new { id = Model.Id })" hx-target="#modal-eventos-conteudo" novalidate>
+        <div class="modal-header">
+            <div>
+                <h2 class="modal-title">Editar evento</h2>
+                <p class="modal-description">Dados gerais do evento.</p>
+            </div>
+            <button type="button" class="btn btn-ghost btn-sm btn-icone" data-modal-fechar aria-label="Fechar">
+                <svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#x" /></svg>
+            </button>
+        </div>
+        <div class="modal-body flex flex-col gap-5">@{ await Campos(); }</div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-outline" data-modal-fechar>Cancelar</button>
+            <button type="submit" class="btn btn-primary">Salvar alterações</button>
+        </div>
+    </form>
+}
+else
+{
+    <form hx-post="@Url.Action("Novo", "Eventos")" hx-target="this" hx-swap="outerHTML" novalidate>
+        <section class="card">
+            <div class="card-header">
+                <div>
+                    <h2 class="card-title">Dados do evento</h2>
+                    <p class="card-description">A comunidade responsável vem do cadastro de comunidades.</p>
+                </div>
+            </div>
+            <div class="card-body flex flex-col gap-5">
+                <div class="form-field" hx-post="/Eventos/Modelos" hx-vals='{"modeloEdicaoId":@(Model.ModeloEdicaoId?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "null")}' hx-trigger="load" hx-target="this" hx-swap="innerHTML">Carregando modelos disponíveis…</div>
+                @{ await Campos(); }
+            </div>
+        </section>
+        <div class="mt-6 flex justify-end gap-2">
+            <a asp-controller="Eventos" asp-action="Index" class="btn btn-outline">Cancelar</a>
+            <button type="submit" class="btn btn-primary">
+                <svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#check" /></svg>Criar evento
+            </button>
+        </div>
+    </form>
+}

@@ -1,0 +1,151 @@
+@model LoteDetalhesDto
+@{
+    var rota = new { eventoId = Model.EventoId, loteId = Model.Id };
+
+    string Rotulo(FaixaLoteDto faixa) => faixa.Tipo switch
+    {
+        TipoFaixaLote.ComResponsavel => faixa.Responsavel!,
+        TipoFaixaLote.SemResponsavel => "Sem responsável",
+        _ => "Disponível"
+    };
+
+    string Classe(TipoFaixaLote tipo) => tipo switch
+    {
+        TipoFaixaLote.ComResponsavel => "responsavel",
+        TipoFaixaLote.SemResponsavel => "sem-responsavel",
+        _ => "livre"
+    };
+
+
+    async Task FormularioImpressao(int? distribuicaoId, string rotulo, string classes)
+    {
+        <form asp-controller="Tickets" asp-action="Imprimir" asp-route-eventoId="@Model.EventoId" asp-route-loteId="@Model.Id"
+              method="post" target="_blank" data-eventos-documento>
+            <input type="hidden" name="__estadoEventos" />
+            @if (distribuicaoId is int id) { <input type="hidden" name="distribuicaoId" value="@id" /> }
+            <button type="submit" class="@classes">
+                <svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#printer" /></svg>@rotulo
+            </button>
+        </form>
+    }
+}
+<title>Lote @Model.Faixa — @Model.Produto | Paróquia São Dimas</title>
+
+<header class="pagina-cabecalho">
+    <div class="min-w-0">
+        <h1 class="pagina-titulo">Lote de tickets — @Model.Produto</h1>
+        <p class="pagina-descricao">@Model.Evento • @Model.Comunidade</p>
+    </div>
+    <div class="flex flex-col gap-3 md:items-end">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li><a asp-controller="Eventos" asp-action="Index">Eventos</a></li>
+                <li><a href="@Url.Action("Detalhes", "Eventos", new { id = Model.EventoId })#lotes">@Model.Evento</a></li>
+                <li aria-current="page">Lote @Model.Faixa</li>
+            </ol>
+        </nav>
+        <div class="flex flex-wrap gap-2">
+            @{ await FormularioImpressao(null, "Imprimir lote", "btn btn-outline btn-sm"); }
+            @if (Model.PermiteAlteracoes)
+            {
+                <label class="text-sm">Operador das ações <input class="form-control" name="operador" data-operador-acoes placeholder="Seu nome" maxlength="150" /></label>
+                <button type="button" class="btn btn-primary btn-sm" hx-post="@Url.Action("FormularioDistribuicao", "Tickets", rota)" hx-target="#modal-eventos-conteudo">
+                    <svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#plus" /></svg>Distribuir tickets
+                </button>
+            }
+        </div>
+    </div>
+</header>
+
+<section class="card mb-6">
+    <div class="card-body flex flex-col gap-5">
+        <div class="flex flex-wrap items-end justify-between gap-4">
+            <div>
+                <p class="text-sm text-muted">@Model.Produto</p>
+                <p class="faixa-numeros text-2xl">@Model.Faixa</p>
+            </div>
+            <dl class="grid grid-cols-2 gap-x-6 gap-y-2 text-sm sm:grid-cols-5">
+                <div><dt class="text-xs text-muted">Total</dt><dd class="text-lg font-medium tabular-nums">@Model.Quantidade.ToString("N0")</dd></div>
+                <div><dt class="text-xs text-muted">Distribuídos</dt><dd class="text-lg font-medium text-primary-700 tabular-nums">@Model.Distribuidos.ToString("N0")</dd></div>
+                <div><dt class="text-xs text-muted">Disponíveis</dt><dd class="text-lg font-medium tabular-nums">@Model.Disponiveis.ToString("N0")</dd></div>
+                <div><dt class="text-xs text-muted">Responsáveis</dt><dd class="text-lg font-medium tabular-nums">@Model.Responsaveis</dd></div>
+                <div><dt class="text-xs text-muted">Valor potencial</dt><dd class="text-lg font-medium tabular-nums">@Model.ValorPotencial.ToString("C2")</dd></div>
+            </dl>
+        </div>
+
+        <div class="faixas-barra h-4" role="img" aria-label="Distribuição do lote em faixas">
+            @foreach (var faixa in Model.Faixas)
+            {
+                <span class="faixa-@Classe(faixa.Tipo)" style="flex-grow: @faixa.Quantidade" title="@faixa.Faixa — @Rotulo(faixa)"></span>
+            }
+        </div>
+        <div class="legenda-faixas">
+            <span><i class="faixa-responsavel"></i>Com responsável</span>
+            <span><i class="faixa-sem-responsavel"></i>Faixa sem responsável (@Model.EmFaixasSemResponsavel)</span>
+            <span><i class="faixa-livre"></i>Livre, fora de faixas (@Model.Livres)</span>
+            <span>Preço unitário: @Model.PrecoUnitario.ToString("C2")</span>
+        </div>
+    </div>
+</section>
+
+<div class="secao-cabecalho">
+    <h2 class="secao-titulo">Distribuição</h2>
+</div>
+
+<ul class="flex flex-col gap-3">
+    @foreach (var faixa in Model.Faixas)
+    {
+        <li class="faixa-item faixa-item-@Classe(faixa.Tipo)">
+            <div class="sm:w-40">
+                <p class="faixa-numeros">@faixa.Faixa</p>
+                <p class="text-sm text-muted tabular-nums">@faixa.Quantidade.ToString("N0") tickets</p>
+            </div>
+
+            <div class="min-w-0 flex-1">
+                <p class="@(faixa.Tipo == TipoFaixaLote.ComResponsavel ? "font-medium" : "text-muted")">@Rotulo(faixa)</p>
+                @if (faixa.Prestacao is { } prestacao)
+                {
+                    <p class="text-sm text-muted">
+                        @prestacao.Vendidos vendidos, @prestacao.Devolvidos devolvidos •
+                        devido @prestacao.ValorEsperado.ToString("C2") · recebimentos na central da edição
+                    </p>
+                }
+                else if (faixa.Tipo == TipoFaixaLote.ComResponsavel)
+                {
+                    <p class="text-sm text-warning-700">Prestação de contas pendente</p>
+                }
+            </div>
+
+            <div class="flex flex-wrap gap-2">
+                @if (faixa.Tipo == TipoFaixaLote.Livre)
+                {
+                    if (Model.PermiteAlteracoes)
+                    {
+                        <button type="button" class="btn btn-outline btn-sm" hx-post="@Url.Action("FormularioDistribuicao", "Tickets", rota)"
+                                hx-vals='{"numeroInicial": @faixa.NumeroInicial, "numeroFinal": @faixa.NumeroFinal}' hx-target="#modal-eventos-conteudo">
+                            Distribuir esta faixa
+                        </button>
+                    }
+                }
+                else
+                {
+                    var distribuicaoId = faixa.DistribuicaoId!.Value;
+                    var rotaFaixa = new { eventoId = Model.EventoId, loteId = Model.Id, distribuicaoId };
+
+                    if (faixa.Tipo == TipoFaixaLote.ComResponsavel && Model.PermitePrestacao)
+                    {
+                        <a class="btn btn-primary btn-sm" href="/Eventos/@Model.EventoId#prestacao">Prestar contas</a>
+                    }
+                    if (faixa.Prestacao is null && Model.PermiteAlteracoes)
+                    {
+                        <button type="button" class="btn btn-ghost btn-sm" hx-post="@Url.Action("FormularioDistribuicao", "Tickets", rota)"
+                                hx-vals='{"distribuicaoId": @distribuicaoId}' hx-target="#modal-eventos-conteudo">Editar</button>
+                        <button type="button" class="btn btn-ghost btn-sm" hx-post="@Url.Action("RemoverDistribuicao", "Tickets", rotaFaixa)"
+                                hx-confirm="Cancelar a faixa @faixa.Faixa? Os tickets voltam a ficar disponíveis.">Cancelar</button>
+                    }
+                    await FormularioImpressao(distribuicaoId, "Imprimir", "btn btn-ghost btn-sm");
+                }
+            </div>
+        </li>
+    }
+</ul>

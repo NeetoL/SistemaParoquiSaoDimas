@@ -1,0 +1,34 @@
+@model FinanceiroPainel
+@{
+    var maior = Math.Max(1m, Model.Meses.Max(m=>Math.Max(m.Entradas,m.Saidas)));
+    var hoje = (DateOnly)ViewData["HojePainel"]!;
+    var atual = Model.Meses.LastOrDefault(m=>m.Mes.Month==hoje.Month) ?? Model.Meses[^1];
+    var invariavel = System.Globalization.CultureInfo.InvariantCulture;
+    string Pontos(bool saidas) => string.Join(" ", Model.Meses.Select((m,i) => $"{(20+i*960m/11).ToString("0.##",invariavel)},{(250-230m*(saidas?m.Saidas:m.Entradas)/maior).ToString("0.##",invariavel)}"));
+    var moeda = System.Globalization.CultureInfo.GetCultureInfo("pt-BR");
+}
+<section class="dashboard-painel dashboard-financeiro" aria-labelledby="financeiro-painel" data-financeiro-painel data-grafico-modo="barras">
+    <header class="dashboard-cabecalho"><div><span class="dashboard-sobrelinha">ESTATÍSTICAS DE @Model.Meses[0].Mes.Year</span><h2 id="financeiro-painel">@(Model.Completo?"Entradas e pagamentos":"Contribuições recebidas")</h2></div><a href="/Gestao/@(Model.Completo?"financeiro":"contribuicoes")" class="btn btn-ghost btn-sm">Ver lançamentos</a></header>
+    <div class="dashboard-financeiro-total" aria-live="polite" aria-atomic="true"><div><span data-financeiro-periodo>@atual.Mes.ToString("MMMM yyyy")</span><strong data-financeiro-entradas>@atual.Entradas.ToString("C",moeda)</strong><small>Recebimentos registrados</small></div><div><span data-financeiro-pagamentos>@atual.Pagamentos</span><small>pagamento(s) recebido(s)</small></div></div>
+    <div class="dashboard-grafico-toolbar"><span>Evolução mensal · valores em R$</span><div role="group" aria-label="Tipo de gráfico"><button type="button" data-grafico-modo="barras" aria-pressed="true">Barras</button><button type="button" data-grafico-modo="linha" aria-pressed="false">Evolução</button></div></div>
+    <div class="dashboard-grafico-eixo"><div class="dashboard-eixo" aria-hidden="true">@for(var i=4;i>=0;i--){<span>@((maior*i/4).ToString("N0",moeda))</span>}</div><div class="dashboard-grafico" role="group" aria-label="Comparação mensal de recebimentos e despesas">
+    <svg class="dashboard-grafico-linhas" viewBox="0 0 1000 270" preserveAspectRatio="none" aria-hidden="true">
+        <polygon points="20,250 @Pontos(false) 980,250" class="grafico-area-preenchida" />
+        <polyline points="@Pontos(false)" class="grafico-linha-entrada" />
+        @if(Model.Completo){<polyline points="@Pontos(true)" class="grafico-linha-saida" />}
+        @for(var i=0;i<Model.Meses.Count;i++){var m=Model.Meses[i];<circle cx="@((20+i*960m/11).ToString("0.##",invariavel))" cy="@((250-230m*m.Entradas/maior).ToString("0.##",invariavel))" r="4" class="grafico-ponto" />}
+    </svg>
+    @foreach(var mes in Model.Meses){
+        <button type="button" class="dashboard-grafico-mes" aria-pressed="@(mes==atual?"true":"false")" aria-label="@mes.Mes.ToString("MMMM yyyy"): recebimentos @mes.Entradas.ToString("C",moeda)@(Model.Completo?", despesas "+mes.Saidas.ToString("C",moeda):"")" data-periodo="@mes.Mes.ToString("MMMM yyyy")" data-entradas="@mes.Entradas.ToString("C",moeda)" data-saidas="@mes.Saidas.ToString("C",moeda)" data-pagamentos="@mes.Pagamentos">
+            <span class="dashboard-grafico-barras" aria-hidden="true">
+                <span class="grafico-entrada" style="--altura:@((100m*mes.Entradas/maior).ToString("0.##",System.Globalization.CultureInfo.InvariantCulture))%"></span>
+                @if(Model.Completo){<span class="grafico-saida" style="--altura:@((100m*mes.Saidas/maior).ToString("0.##",System.Globalization.CultureInfo.InvariantCulture))%"></span>}
+            </span><span>@mes.Mes.ToString("MMM").TrimEnd('.')</span>
+        </button>
+    }
+    </div>
+    </div><div class="dashboard-grafico-legenda"><span><i class="grafico-entrada"></i>Recebimentos</span>@if(Model.Completo){<span><i class="grafico-saida"></i>Despesas</span>}</div>
+    <p class="dashboard-nota mt-4">Selecione um mês para consultar os valores. Meses sem lançamentos aparecem zerados.</p>
+    @if(Model.Completo){<div class="dashboard-financeiro-saida" aria-live="polite"><span>Despesas do mês selecionado</span><strong data-financeiro-saidas>@atual.Saidas.ToString("C",moeda)</strong></div>}
+    <partial name="_FormasPagamentoPainel" model="Model" />
+</section>

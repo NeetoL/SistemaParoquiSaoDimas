@@ -1,0 +1,39 @@
+@model PainelEventosDto
+@{
+    var indicadores = Model.Indicadores;
+    var grupos = Model.Eventos.GroupBy(e => e.EventoBaseId).ToList();
+    string Categoria(EventoResumoDto edicao) => edicao.Status == StatusEvento.Ativo ? "Eventos em andamento"
+        : edicao.Status == StatusEvento.Planejamento ? "Próximos eventos"
+        : edicao.TotalEdicoes > 1 ? "Eventos tradicionais" : "Eventos recentes";
+}
+<div class="indicadores mb-6">
+    <div class="indicador"><div><p class="indicador-valor">@indicadores.EventosAtivos</p><p class="indicador-rotulo">Em andamento</p></div></div>
+    <div class="indicador"><div><p class="indicador-valor">@indicadores.Produtos</p><p class="indicador-rotulo">Produtos</p></div></div>
+    <div class="indicador"><div><p class="indicador-valor">@indicadores.TicketsGerados.ToString("N0")</p><p class="indicador-rotulo">Tickets gerados</p></div></div>
+    <div class="indicador"><div><p class="indicador-valor">@indicadores.TicketsDistribuidos.ToString("N0")</p><p class="indicador-rotulo">Tickets distribuídos</p></div></div>
+</div>
+@if (grupos.Count == 0)
+{
+    <section class="card"><div class="empty-state"><h2 class="empty-state-titulo">Nenhum evento encontrado</h2><p class="empty-state-descricao">Cadastre o evento uma vez e crie edições independentes a cada ano, ou ajuste os filtros.</p><div class="empty-state-acoes"><a asp-action="Novo" class="btn btn-primary">Criar evento</a></div></div></section>
+}
+else
+{
+    @foreach (var categoria in new[] { "Eventos em andamento", "Próximos eventos", "Eventos tradicionais", "Eventos recentes" })
+    {
+        var destaques = grupos.Where(g => Categoria(g.OrderByDescending(e => e.Ano).First()) == categoria).ToList();
+        if (destaques.Count == 0) continue;
+        <section class="mb-8"><div class="secao-cabecalho"><h2 class="secao-titulo">@categoria</h2><span class="text-sm text-muted">@destaques.Count evento(s)</span></div>
+        <ul class="eventos-lista">
+            @foreach (var grupo in destaques)
+            {
+                var recente = grupo.OrderByDescending(e => e.Ano).First();
+                <li class="evento-linha">
+                    <div><h3>@recente.NomeBase</h3><small>@recente.Comunidade · @recente.DataInicio.ToString("dd/MM/yyyy")</small></div>
+                    <div><partial name="_StatusEvento" model="recente.Status" /><small>@recente.TotalEdicoes edição(ões)</small></div>
+                    <div class="evento-linha-edicoes" aria-label="Edições de @recente.NomeBase">@foreach(var edicao in grupo.OrderByDescending(e=>e.Ano)){<a href="/Eventos/@edicao.Id">@edicao.Ano</a>}</div>
+                    <a class="btn btn-outline btn-sm" href="/Eventos/@recente.Id#edicoes">Abrir evento</a>
+                </li>
+            }
+            </ul></section>
+    }
+}

@@ -1,0 +1,19 @@
+@model StatusEvento
+@switch (Model)
+{
+    case StatusEvento.Planejamento:
+        <span class="badge badge-info">Planejamento</span>
+        break;
+    case StatusEvento.Ativo:
+        <span class="badge badge-success">Em andamento</span>
+        break;
+    case StatusEvento.Encerrado:
+        <span class="badge badge-neutral">Aguardando fechamento</span>
+        break;
+    case StatusEvento.Fechado:
+        <span class="badge badge-success">Fechado</span>
+        break;
+    default:
+        <span class="badge badge-danger">Cancelado</span>
+        break;
+}

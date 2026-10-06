@@ -1,0 +1,33 @@
+@using System.Security.Claims
+@{
+    var autenticado = User.Identity?.IsAuthenticated == true;
+    var nome = autenticado ? User.Identity!.Name ?? "Usuário" : "Visitante";
+    var perfil = autenticado ? User.FindFirstValue(ClaimTypes.Role) ?? "Usuário" : "Não autenticado";
+    var partes = nome.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+    var iniciais = (partes.Length > 1 ? $"{partes[0][0]}{partes[^1][0]}" : nome[..1]).ToUpperInvariant();
+}
+<button type="button" popovertarget="menu-usuario"
+        class="flex items-center gap-3 rounded-md p-1 transition-colors duration-150 hover:bg-surface-muted sm:pr-3">
+    <span class="sr-only">Menu do usuário:</span>
+    <span class="avatar" aria-hidden="true">@iniciais</span>
+    <span class="hidden text-[0.9375rem] text-muted sm:block">@nome</span>
+    <svg class="icone hidden size-4 text-muted sm:inline-block" aria-hidden="true"><use href="/icons/lucide.svg#chevron-down" /></svg>
+</button>
+
+<div id="menu-usuario" popover class="menu-popover">
+    <div class="flex items-center gap-3 px-2.5 pt-1.5 pb-2.5">
+        <span class="avatar" aria-hidden="true">@iniciais</span>
+        <span class="min-w-0 leading-tight">
+            <span class="block truncate text-sm font-medium">@nome</span>
+            <span class="block truncate text-xs text-muted">@perfil</span>
+        </span>
+    </div>
+    <hr class="menu-separador" />
+
+    <a href="/Conta/Perfil" class="menu-item"><svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#user" /></svg>Meu perfil</a>
+    <a href="/Conta/Senha" class="menu-item"><svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#key-round" /></svg>Alterar senha</a>
+    <hr class="menu-separador" />
+    <form asp-controller="Conta" asp-action="Sair" method="post">
+        <button type="submit" class="menu-item w-full"><svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#log-out" /></svg>Sair</button>
+    </form>
+</div>

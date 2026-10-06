@@ -1,0 +1,52 @@
+@model LoginViewModel
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Entrar | Paróquia São Dimas</title>
+    <link rel="icon" href="~/img/favicon.png" type="image/png" />
+    <link rel="stylesheet" href="~/css/app.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/ui/produto.css" asp-append-version="true" media="screen" />
+<script src="~/js/preferencias.js" asp-append-version="true"></script>
+</head>
+<body class="acesso-pagina">
+    <header class="acesso-topo">
+        <div class="acesso-marca"><img src="/img/brasao.webp" width="30" height="44" alt="" /><span><strong>São Dimas</strong><small>Gestão paroquial</small></span></div>
+        <partial name="_AlternarTema" />
+    </header>
+    <main class="acesso-centro">
+        <section class="acesso-painel" aria-labelledby="titulo-login">
+            <div class="acesso-simbolo" aria-hidden="true"><svg class="icone"><use href="/icons/lucide.svg#church" /></svg></div>
+            <span class="acesso-etiqueta">PARÓQUIA SÃO DIMAS</span>
+            <h1 id="titulo-login">Bem-vindo de volta.</h1>
+            <p class="acesso-descricao">Entre para acessar sua área de trabalho.</p>
+            <form asp-controller="Conta" asp-action="Login" method="post" class="acesso-form">
+                <input asp-for="ReturnUrl" type="hidden" />
+                <div asp-validation-summary="ModelOnly" class="alerta-erro" role="alert"></div>
+                <div class="form-field">
+                    <label asp-for="Usuario" class="form-label"></label>
+                    <input asp-for="Usuario" class="form-control" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="Seu usuário" required />
+                    <span asp-validation-for="Usuario" class="form-error"></span>
+                </div>
+                <div class="form-field">
+                    <label asp-for="Senha" class="form-label"></label>
+                    <div class="acesso-senha">
+                        <input asp-for="Senha" type="password" value="" class="form-control" autocomplete="current-password" placeholder="Sua senha" required />
+                        <button type="button" data-senha-visibilidade aria-label="Mostrar senha" aria-controls="Senha" aria-pressed="false"><svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#eye" /></svg></button>
+                    </div>
+                    <span asp-validation-for="Senha" class="form-error"></span>
+                </div>
+                <button type="submit" class="btn btn-primary acesso-entrar">Entrar <svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#arrow-right" /></svg></button>
+            </form>
+            <p class="acesso-ajuda">Precisa de acesso? Procure a administração da paróquia.</p>
+        </section>
+        <p class="acesso-assinatura"><span aria-hidden="true"></span>Secretaria · Tesouraria · Comunidades</p>
+    </main>
+    <footer class="acesso-footer"><span>Paróquia São Dimas</span><span>Gestão que aproxima a comunidade.</span></footer>
+    <script type="module" src="~/js/login.js" asp-append-version="true"></script>
+</body>
+</html>

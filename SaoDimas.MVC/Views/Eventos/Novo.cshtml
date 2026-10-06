@@ -1,0 +1,19 @@
+@model EventoFormularioViewModel
+@{
+    ViewData["Title"] = "Novo evento";
+    ViewData["Descricao"] = "Cadastre o evento e, em seguida, os produtos e os tickets.";
+}
+
+@section Breadcrumb {
+    <li><a asp-action="Index">Eventos</a></li>
+    <li aria-current="page">Novo</li>
+}
+
+<div data-eventos>
+    @Html.AntiForgeryToken()
+    <partial name="_FormularioEvento" model="Model" />
+</div>
+
+@section Scripts {
+    <partial name="_ScriptsModulo" />
+}

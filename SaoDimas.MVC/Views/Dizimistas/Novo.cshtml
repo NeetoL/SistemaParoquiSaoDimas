@@ -1,0 +1,21 @@
+@model DizimistaFormularioViewModel
+@{
+    ViewData["Title"] = "Novo dizimista";
+    ViewData["Descricao"] = "Cadastre um dizimista e vincule-o à sua comunidade.";
+}
+
+@section Breadcrumb {
+    <li><a asp-action="Index">Dizimistas</a></li>
+    <li aria-current="page">Novo</li>
+}
+
+<form asp-action="Novo" method="post" novalidate>
+    <partial name="_Formulario" model="Model" />
+
+    <div class="mt-6 flex justify-end gap-2">
+        <a asp-action="Index" class="btn btn-outline">Cancelar</a>
+        <button type="submit" class="btn btn-primary">
+            <svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#check" /></svg>Salvar
+        </button>
+    </div>
+</form>

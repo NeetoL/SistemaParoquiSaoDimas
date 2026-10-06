@@ -1,0 +1,7 @@
+@model PainelEventosDto
+<label class="form-label" for="ModeloEdicaoId">Como deseja começar?</label>
+<select class="form-control" name="ModeloEdicaoId" id="ModeloEdicaoId">
+    <option value="">Criar do zero</option>
+    @foreach (var evento in Model.Eventos) { <option value="@evento.Id" selected="@(ViewData["ModeloEdicaoId"] is int selecionado && selecionado == evento.Id)">Usar como modelo: @evento.NomeBase · @evento.Ano</option> }
+</select>
+<p class="form-hint">Copiar somente produtos e preços iniciais. Tickets, responsáveis, vendas e caixa começam do zero. Para repetir o mesmo evento anual, use “Nova edição” na página do evento.</p>

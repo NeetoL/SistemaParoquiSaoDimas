@@ -1,0 +1,24 @@
+<div id="toasts" class="toasts" aria-live="polite"></div>
+
+@* Mensagem de sucesso após redirect (Post/Redirect/Get), exibida pelo toast.js. *@
+@if (TempData[MensagemTempData.Sucesso] is string mensagemSucesso)
+{
+    <output hidden data-toast-servidor="success">@mensagemSucesso</output>
+}
+
+@if (TempData[MensagemTempData.Erro] is string mensagemErro) { <output hidden data-toast-servidor="error">@mensagemErro</output> }
+
+<template id="toast-template">
+    <div class="toast" role="status">
+        <span class="toast-icone mt-px">
+            <svg class="icone" data-tipo="success" aria-hidden="true"><use href="/icons/lucide.svg#circle-check" /></svg>
+            <svg class="icone" data-tipo="error" aria-hidden="true"><use href="/icons/lucide.svg#circle-x" /></svg>
+            <svg class="icone" data-tipo="warning" aria-hidden="true"><use href="/icons/lucide.svg#triangle-alert" /></svg>
+            <svg class="icone" data-tipo="info" aria-hidden="true"><use href="/icons/lucide.svg#info" /></svg>
+        </span>
+        <p class="toast-mensagem flex-1 pt-0.5 text-sm text-foreground"></p>
+        <button type="button" class="btn btn-ghost btn-sm btn-icone -my-1 -mr-1.5" data-toast-fechar aria-label="Fechar notificação">
+            <svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#x" /></svg>
+        </button>
+    </div>
+</template>

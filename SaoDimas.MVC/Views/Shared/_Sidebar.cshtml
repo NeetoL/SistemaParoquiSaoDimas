@@ -1,0 +1,93 @@
+@{
+    var controllerAtual = ViewContext.RouteData.Values["controller"] as string;
+
+    // controller null = módulo ainda não implementado: o item aparece desabilitado ("Em breve").
+    // relacionados: controllers de telas filhas que também destacam o item (ex.: Envelopes → Dizimistas).
+    void Item(string texto, string icone, string? controller, params string[] relacionados)
+    {
+        if(controller is "Dizimistas" or "Envelopes" && User.IsInRole("Coordenador"))return;
+        if (controller is null)
+        {
+            <span class="sidebar-link" aria-disabled="true" data-tooltip="@texto (em breve)">
+                <svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#@icone" /></svg>
+                <span class="sidebar-label">@texto</span>
+                <span class="badge-em-breve">Em breve</span>
+            </span>
+        }
+        else
+        {
+            var ativo = string.Equals(controllerAtual, controller, StringComparison.OrdinalIgnoreCase)
+                || relacionados.Contains(controllerAtual, StringComparer.OrdinalIgnoreCase);
+            <a href="@Url.Action("Index", controller)" class="sidebar-link" aria-current="@(ativo ? "page" : null)" data-tooltip="@texto">
+                <svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#@icone" /></svg>
+                <span class="sidebar-label">@texto</span>
+            </a>
+        }
+    }
+}
+<div id="sidebar-overlay" class="sidebar-overlay" data-sidebar-fechar hidden></div>
+
+<aside id="sidebar" class="sidebar" aria-label="Menu lateral">
+    <div class="sidebar-cabecalho">
+        <a asp-controller="Home" asp-action="Index" class="sidebar-marca">
+            <img src="~/img/brasao.webp" alt="" width="33" height="48" class="h-12 w-auto shrink-0" />
+            <span class="sidebar-label leading-tight">
+                <span class="sidebar-marca-nome">São Dimas</span>
+                <span class="sidebar-marca-contexto">Gestão paroquial</span>
+            </span>
+        </a>
+
+        <button type="button" class="btn btn-ghost btn-icone lg:hidden" data-sidebar-fechar aria-label="Fechar menu">
+            <svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#x" /></svg>
+        </button>
+    </div>
+
+    <nav class="sidebar-nav" aria-label="Navegação principal">
+        <p class="produto-nav-label sidebar-label">ESPAÇO PAROQUIAL</p>
+        <ul class="sidebar-secao">
+            <li>@{ Item("Visão da paróquia", "layout-dashboard", "Home"); }</li>
+        </ul>
+
+        <details class="sidebar-grupo" name="sidebar-grupos">
+            <summary class="sidebar-grupo-titulo" data-tooltip="Gestão Paroquial">
+                <svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#church" /></svg>
+                <span class="sidebar-label">Gestão Paroquial</span>
+                <svg class="icone sidebar-grupo-seta" aria-hidden="true"><use href="/icons/lucide.svg#chevron-right" /></svg>
+            </summary>
+        <ul class="sidebar-secao">
+            <li>@{ Item("Dizimistas", "users", "Dizimistas", "Envelopes"); }</li>
+            <li>@{ Item("Eventos", "calendar-days", "Eventos", "Tickets"); }</li>
+            <li>@{ Item("Calendário da fé", "calendar-heart", "Calendario"); }</li>
+        </ul>
+
+        </details>
+        <details class="sidebar-grupo" name="sidebar-grupos">
+            <summary class="sidebar-grupo-titulo" data-tooltip="Rotina da paróquia">
+                <svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#calendar-days" /></svg>
+                <span class="sidebar-label">Rotina da paróquia</span>
+                <svg class="icone sidebar-grupo-seta" aria-hidden="true"><use href="/icons/lucide.svg#chevron-right" /></svg>
+            </summary>
+        <ul class="sidebar-secao">
+        @foreach(var modulo in CatalogoParoquial.Modulos.Where(m=>m.Perfis.Contains(User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value??""))){
+            <li><a href="/Gestao/@modulo.Chave" class="sidebar-link" aria-current="@(controllerAtual=="Gestao"&&ViewContext.RouteData.Values["modulo"]?.ToString()==modulo.Chave?"page":null)" data-tooltip="@modulo.Nome"><svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#@modulo.Icone" /></svg><span class="sidebar-label">@modulo.Nome</span></a></li>
+        }
+        <li>@{Item("Relatórios","chart-no-axes-combined","Relatorios");}</li>
+        </ul>
+        </details>
+        @if(User.IsInRole("Administrador")){
+        <details class="sidebar-grupo" name="sidebar-grupos">
+            <summary class="sidebar-grupo-titulo" data-tooltip="Administração">
+                <svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#user-cog" /></svg>
+                <span class="sidebar-label">Administração</span>
+                <svg class="icone sidebar-grupo-seta" aria-hidden="true"><use href="/icons/lucide.svg#chevron-right" /></svg>
+            </summary>
+        <ul class="sidebar-secao">
+            <li>@{ Item("Usuários", "user-cog", "Usuarios"); }</li>
+            <li>@{ Item("Auditoria", "clipboard-list", "Auditoria"); }</li>
+            <li>@{ Item("Backups", "database-backup", "Backups"); }</li>
+        </ul>
+        </details>
+        }
+    </nav>
+    <div class="produto-sidebar-rodape"><span class="produto-identificador" aria-hidden="true">SD</span><span class="sidebar-label"><strong>Gestão paroquial</strong><small>@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value</small></span></div>
+</aside>

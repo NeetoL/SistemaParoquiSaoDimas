@@ -1,0 +1,55 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <UserSecretsId>saodimas-gestao-paroquial-mvc</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Somente para "dotnet ef" (migrations) em tempo de design; não vai para o publish. -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SaoDimas.CrossCutting\SaoDimas.CrossCutting.csproj" />
+    <ProjectReference Include="..\SaoDimas.Aplicacao\SaoDimas.Aplicacao.csproj" />
+    <!-- Referenciada apenas para o Composition Root (Program.cs). -->
+    <ProjectReference Include="..\SaoDimas.Infraestrutura\SaoDimas.Infraestrutura.csproj" />
+  </ItemGroup>
+
+  <!--
+    Frontend (Tailwind CSS, sprite de ícones, fonte, HTMX, imagens da marca) gerado em wwwroot/ a cada build,
+    a partir das fontes em wwwroot/src. Requer Node.js. Os arquivos gerados não são versionados (ver .gitignore).
+  -->
+  <ItemGroup>
+    <!-- Dados reais e backups ficam no servidor, fora dos arquivos publicados. -->
+    <Content Remove="App_Data/**" />
+    <None Remove="App_Data/**" />
+    <!-- wwwroot/src contém apenas fontes do build: nunca é servido nem publicado. -->
+    <Content Remove="wwwroot/src/**" />
+    <None Include="wwwroot/src/**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <FrontendEntrada Include="package.json;package-lock.json;wwwroot/src/**;Views/**/*.cshtml;wwwroot/js/**/*.js" />
+    <FrontendSaida Include="wwwroot/css/app.css;wwwroot/icons/lucide.svg;wwwroot/fonts/rubik-latin-wght-normal.woff2;wwwroot/lib/htmx/htmx.min.js;wwwroot/lib/romcal/romcal.js;wwwroot/lib/romcal/brazil.js;wwwroot/lib/romcal/i18next.js;wwwroot/lib/romcal/i18next-LICENSE.txt;wwwroot/lib/romcal/LICENSE.txt;wwwroot/img/brasao.webp;wwwroot/img/favicon.png;wwwroot/img/brasao-impressao.png" />
+  </ItemGroup>
+
+  <Target Name="FrontendInstalar" Inputs="package.json;package-lock.json" Outputs="node_modules/.instalado">
+    <Exec Command="npm ci --no-audit --no-fund" />
+    <Touch Files="node_modules/.instalado" AlwaysCreate="true" />
+  </Target>
+
+  <Target Name="FrontendBuild" DependsOnTargets="FrontendInstalar" BeforeTargets="BeforeBuild"
+          Inputs="@(FrontendEntrada)" Outputs="@(FrontendSaida)">
+    <Exec Command="npm run build" />
+    <Touch Files="@(FrontendSaida)" />
+  </Target>
+
+  <!-- Inclui os arquivos gerados como static web assets mesmo no primeiro build (após a avaliação do projeto). -->
+  <Target Name="FrontendIncluirSaida" AfterTargets="FrontendBuild">
+    <ItemGroup>
+      <Content Include="@(FrontendSaida)" Exclude="@(Content)" />
+    </ItemGroup>
+  </Target>
+
+</Project>

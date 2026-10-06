@@ -1,0 +1,13 @@
+root = true
+
+[*.cs]
+# CA1716: "Interface" e "Implementation" são as pastas/namespaces oficiais da convenção do projeto
+# (ver docs/arquitetura.md); o conflito apontado é com palavras reservadas do VB, que não é usado.
+dotnet_diagnostic.CA1716.severity = none
+
+# CA1000: Resultado<T>.Ok/Falha são fábricas do Result pattern; membros estáticos em tipo genérico são intencionais.
+dotnet_diagnostic.CA1000.severity = none
+
+# Migrations são geradas pelo EF Core.
+[**/Migrations/*.cs]
+generated_code = true

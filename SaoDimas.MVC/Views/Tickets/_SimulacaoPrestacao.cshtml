@@ -1,0 +1,20 @@
+@model PrestacaoFormularioViewModel
+@{
+    var simulacao = Model.Simulacao;
+    var diferenca = simulacao?.Diferenca ?? 0;
+}
+@* Valores calculados no servidor (regra de negócio), nunca no navegador. *@
+<dl class="grid grid-cols-2 gap-3 rounded-md border border-border p-3 text-sm">
+    <div>
+        <dt class="text-xs text-muted">Valor esperado (vendidos × preço)</dt>
+        <dd class="text-lg font-medium tabular-nums">@((simulacao?.ValorEsperado ?? 0).ToString("C2"))</dd>
+    </div>
+    <div>
+        <dt class="text-xs text-muted">Diferença (entregue − esperado)</dt>
+        <dd class="text-lg font-medium tabular-nums @(diferenca < 0 ? "valor-negativo" : diferenca > 0 ? "valor-positivo" : "")">@diferenca.ToString("C2")</dd>
+    </div>
+    @if (diferenca != 0)
+    {
+        <p class="col-span-2 text-xs text-warning-700">Há diferença: informe a justificativa para registrar.</p>
+    }
+</dl>

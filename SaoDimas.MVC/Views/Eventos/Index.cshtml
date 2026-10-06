@@ -1,0 +1,59 @@
+@model IReadOnlyList<ComunidadeDto>
+@{
+    ViewData["Title"] = "Eventos";
+    ViewData["Descricao"] = "Festas, almoços e eventos da paróquia e das capelas: produtos, tickets e prestação de contas.";
+}
+
+@section Acoes {
+    <a asp-action="Novo" class="btn btn-primary">
+        <svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#plus" /></svg>Novo evento
+    </a>
+}
+
+<div data-eventos>
+    @Html.AntiForgeryToken()
+
+    <form id="filtro-eventos" class="ui-filtros mb-6 grid gap-3 p-4 sm:grid-cols-2 xl:grid-cols-[1fr_14rem_11rem_9.5rem_9.5rem] xl:items-end" role="search"
+          hx-post="@Url.Action("Painel")" hx-target="#painel-eventos" hx-trigger="submit, change, input delay:400ms from:#busca-evento">
+        <div class="form-field sm:col-span-2 xl:col-span-1">
+            <label for="busca-evento" class="form-label">Pesquisar</label>
+            <input id="busca-evento" name="Busca" type="search" class="form-control" placeholder="Pesquisar evento..." autocomplete="off" />
+        </div>
+        <div class="form-field">
+            <label for="filtro-comunidade" class="form-label">Comunidade</label>
+            <select id="filtro-comunidade" name="ComunidadeId" class="form-control">
+                <option value="">Todas</option>
+                @foreach (var comunidade in Model)
+                {
+                    <option value="@comunidade.Id">@comunidade.Nome</option>
+                }
+            </select>
+        </div>
+        <div class="form-field">
+            <label for="filtro-status" class="form-label">Status</label>
+            <select id="filtro-status" name="Status" class="form-control">
+                <option value="">Todos</option>
+                @foreach (var status in Enum.GetValues<StatusEvento>())
+                {
+                    <option value="@status">@status</option>
+                }
+            </select>
+        </div>
+        <div class="form-field">
+            <label for="filtro-de" class="form-label">De</label>
+            <input id="filtro-de" name="De" type="date" class="form-control" />
+        </div>
+        <div class="form-field">
+            <label for="filtro-ate" class="form-label">Até</label>
+            <input id="filtro-ate" name="Ate" type="date" class="form-control" />
+        </div>
+    </form>
+
+    <div id="painel-eventos" hx-post="@Url.Action("Painel")" hx-include="#filtro-eventos" hx-trigger="load, eventos:atualizar from:body">
+        <partial name="_Carregando" />
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ScriptsModulo" />
+}

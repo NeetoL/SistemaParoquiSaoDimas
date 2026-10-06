@@ -1,0 +1,54 @@
+# Gestão paroquial — guia de uso
+
+O painel e o menu lateral dão acesso aos módulos conforme o perfil da pessoa. Os testes usam diretórios separados dos cadastros reais.
+
+## Acesso e perfis
+
+O primeiro acesso continua sendo **admin / admin**. Em **Usuários**, o administrador cria contas individuais, escolhe o perfil e pode desativar acessos. Novas senhas devem ter de 8 a 128 caracteres. O menu do usuário oferece perfil, troca de senha e saída.
+
+- **Administrador:** todos os módulos, usuários, auditoria e backups.
+- **Secretaria:** dizimistas, envelopes, contribuições, agenda, sacramentos, pastorais, voluntários, escalas e relatórios desses módulos.
+- **Tesouraria:** dizimistas, envelopes, contribuições, financeiro, agenda e relatórios permitidos.
+- **Coordenador:** agenda, pastorais, voluntários, escalas e seus relatórios.
+
+Todos têm acesso ao painel, calendário litúrgico e consultas de eventos. A gestão de caixa dos eventos fica com administrador e tesouraria. As permissões são conferidas no servidor. Alterar senha, perfil ou situação invalida as sessões antigas. O último administrador ativo não pode ser desativado ou perder seu perfil.
+
+## Dízimo e financeiro
+
+Em **Dízimo e contribuições**, escolha o dizimista cadastrado, competência, comunidade, valor e forma de contribuição. A ficha permite emitir recibo PDF e baixar o comprovante.
+
+Em **Financeiro**, registre entradas e despesas com categoria e comprovante. Os totais incluem automaticamente as contribuições e movimentações de recebimento/estorno dos eventos; o fundo de troco não entra como receita. Os filtros selecionam período e comunidade. Para corrigir valores, cancele o lançamento e cadastre o correto: o registro antigo continua no histórico.
+
+Comprovantes podem ser PDF, PNG ou JPEG de até 5 MB e são armazenados junto dos dados JSON.
+
+## Agenda, secretaria e pastorais
+
+- **Agenda paroquial:** missas, reuniões e reservas. O sistema impede sobreposição no mesmo espaço; o painel mostra os próximos compromissos.
+- **Secretaria e sacramentos:** batismos, crismas e casamentos com celebrante, livro, folha e termo. O mesmo termo não pode ser registrado duas vezes na mesma comunidade e sacramento. A ficha emite PDF com os dados cadastrados para conferência e assinatura da secretaria.
+- **Pastorais:** responsáveis e comunidade.
+- **Voluntários:** vínculo com a pastoral, contatos e disponibilidade.
+- **Escalas:** serviço e horário de cada voluntário; sobreposições são recusadas.
+
+Registros podem ser editados ou cancelados. Pastorais e voluntários com vínculos ativos exigem ajustar esses vínculos antes de cancelar. Uma edição desatualizada é recusada para preservar alterações feitas por outra pessoa.
+
+## Relatórios e planilhas
+
+**Relatórios** oferece filtros por módulo, período e comunidade, PDF e CSV. O relatório financeiro reúne lançamentos, contribuições e eventos e apresenta saldo; o CSV identifica a origem. A exportação CSV de cada cadastro serve para os dados próprios daquele módulo.
+
+A importação usa **CSV UTF-8 separado por ponto e vírgula**, até 500 registros e 2 MB por arquivo. Baixe o modelo da tela, preencha e envie para validar. Uma prévia mostra até dez linhas; os dados somente são gravados após confirmar e passam por nova validação. Um erro em qualquer linha recusa o lote inteiro. Duplicidades e conflitos são conferidos.
+
+Datas usam AAAA-MM-DD, competências AAAA-MM e horários AAAA-MM-DDTHH:mm. Valores aceitam vírgula ou ponto decimal, sem separador de milhar. Vínculos usam os identificadores da comunidade, dizimista, pastoral ou voluntário; a ficha mostra o identificador usado para importação. No cadastro de dizimistas, status usa Ativo ou Inativo.
+
+## Auditoria e backups
+
+**Auditoria** registra operador, data, ação e referência. Os novos módulos também guardam os valores anteriores e posteriores. Senhas são armazenadas como hash e nunca aparecem no histórico de alterações.
+
+**Backups** permite gerar e baixar uma cópia ou enviar um arquivo salvo em outro dispositivo. Antes de restaurar, a tela mostra quantidades, verifica o arquivo e pede a palavra RESTAURAR. O sistema preserva uma cópia do estado anterior e mantém as contas e o histórico de auditoria atuais para evitar reativar acessos antigos.
+
+Os dados ficam em SaoDimas.MVC/App_Data/sistema.json; os comprovantes fazem parte desse arquivo. Na primeira alteração de cada dia é guardada uma cópia diária do estado anterior, mantendo as 30 mais recentes. Backups manuais e anteriores à restauração também ficam em App_Data/backups. A gravação ainda conserva sistema.json.bak. Baixe periodicamente uma cópia para outro dispositivo.
+
+Se o arquivo principal ficar corrompido e o login não abrir, pare o servidor e substitua sistema.json por uma cópia íntegra guardada, preservando o arquivo corrompido para investigação. A recuperação pelo arquivo também recupera as contas existentes naquela cópia. Depois reinicie e confira os dados.
+
+## Verificação
+
+Compilação sem avisos, testes automatizados de domínio, arquitetura e persistência e verificações no navegador com dados isolados. Incluem saldo, recibos e certidões, importação, conflitos, permissões, invalidação de sessão, restauração, proteção dos formulários, temas e três larguras de tela.

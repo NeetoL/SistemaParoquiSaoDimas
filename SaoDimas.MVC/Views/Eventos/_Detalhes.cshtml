@@ -1,0 +1,216 @@
+@model EventoDetalhesDto
+@{
+    var periodo = Model.DataFim is { } fim && fim != Model.DataInicio
+        ? $"{Model.DataInicio:dd/MM/yyyy} — {fim:dd/MM/yyyy}"
+        : Model.DataInicio.ToString("dd/MM/yyyy");
+
+}
+<title>@Model.Nome | Paróquia São Dimas</title>
+
+<header class="pagina-cabecalho">
+    <div class="min-w-0">
+        <h1 class="pagina-titulo">@Model.Nome</h1>
+        <p class="pagina-descricao flex flex-wrap items-center gap-x-3 gap-y-1">
+            <span>@Model.Comunidade</span>
+            <span class="tabular-nums">@periodo</span>
+            <partial name="_StatusEvento" model="Model.Status" />
+        </p>
+    </div>
+    <div class="flex flex-col gap-3 md:items-end">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li><a asp-controller="Home" asp-action="Index">Início</a></li>
+                <li><a asp-controller="Eventos" asp-action="Index">Eventos</a></li>
+                <li aria-current="page">@Model.Nome</li>
+            </ol>
+        </nav>
+        <div class="flex flex-wrap gap-2">
+            @if (Model.PermiteAlteracoes)
+            {
+                <label class="text-sm">Operador das ações <input class="form-control" name="operador" data-operador-acoes placeholder="Seu nome" maxlength="150" /></label>
+            }
+            @if (Model.PermiteAlteracoes)
+            {
+                <button type="button" class="btn btn-outline btn-sm" hx-post="@Url.Action("Editar", "Eventos", new { id = Model.Id })" hx-target="#modal-eventos-conteudo">
+                    <svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#pencil" /></svg>Editar
+                </button>
+            }
+            @if (Model.Status == StatusEvento.Planejamento)
+            {
+                <button type="button" class="btn btn-primary btn-sm" hx-post="@Url.Action("Status", "Eventos", new { id = Model.Id })" hx-vals='{"acao":"Ativar"}'>
+                    <svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#play" /></svg>Ativar
+                </button>
+            }
+            @if (Model.PermiteAlteracoes)
+            {
+                <button type="button" class="btn btn-outline btn-sm" hx-post="@Url.Action("Status", "Eventos", new { id = Model.Id })" hx-vals='{"acao":"Encerrar"}'
+                        hx-confirm="Encerrar o evento? Produtos, lotes e faixas não poderão mais ser alterados (a prestação de contas continua liberada).">
+                    <svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#circle-check-big" /></svg>Encerrar
+                </button>
+                <button type="button" class="btn btn-ghost btn-sm" hx-post="@Url.Action("Status", "Eventos", new { id = Model.Id })" hx-vals='{"acao":"Cancelar"}'
+                        hx-confirm="Cancelar o evento? Nada mais poderá ser alterado, nem a prestação de contas.">
+                    Cancelar evento
+                </button>
+            }
+        </div>
+    </div>
+</header>
+
+<div class="indicadores mb-6">
+    <div class="indicador">
+        <div><p class="indicador-valor">@Model.Produtos.Count</p><p class="indicador-rotulo">Produtos</p></div>
+    </div>
+    <div class="indicador">
+        <div><p class="indicador-valor">@Model.TicketsGerados.ToString("N0")</p><p class="indicador-rotulo">Tickets gerados</p></div>
+    </div>
+    <div class="indicador">
+        <div><p class="indicador-valor">@Model.TicketsDistribuidos.ToString("N0")</p><p class="indicador-rotulo">Distribuídos</p></div>
+    </div>
+    <div class="indicador">
+        <div><p class="indicador-valor">@Model.TicketsDisponiveis.ToString("N0")</p><p class="indicador-rotulo">Disponíveis</p></div>
+    </div>
+</div>
+
+<nav class="navegacao-secoes" aria-label="Seções do evento">
+    <a href="#produtos">Produtos</a>
+    <a href="#lotes">Lotes de tickets</a>
+    <a href="#responsaveis">Responsáveis</a>
+    <a href="#prestacao">Prestação de contas</a>
+    <a href="#edicoes">Edições</a>
+    <a href="#caixa">Caixa</a>
+    <a href="#fechamento">Fechamento</a>
+    <a href="#historico">Histórico</a>
+</nav>
+
+@if (Model.Descricao is not null || Model.Observacoes is not null)
+{
+    <section class="card mb-8">
+        <dl class="lista-dados card-body">
+            @if (Model.Descricao is not null) { <div><dt>Descrição</dt><dd class="whitespace-pre-line">@Model.Descricao</dd></div> }
+            @if (Model.Observacoes is not null) { <div><dt>Observações</dt><dd class="whitespace-pre-line">@Model.Observacoes</dd></div> }
+        </dl>
+    </section>
+}
+
+@* ------------------------------------------------------------- Produtos *@
+<section id="produtos" class="mb-8 scroll-mt-24">
+    <div class="secao-cabecalho">
+        <h2 class="secao-titulo">Produtos</h2>
+        @if (Model.PermiteAlteracoes)
+        {
+            <button type="button" class="btn btn-primary btn-sm" hx-post="@Url.Action("FormularioProduto", "Eventos", new { id = Model.Id })" hx-target="#modal-eventos-conteudo">
+                <svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#plus" /></svg>Novo produto
+            </button>
+        }
+    </div>
+
+    @if (Model.Produtos.Count == 0)
+    {
+        <div class="card"><p class="card-body text-sm text-muted">Nenhum produto cadastrado. Cadastre o primeiro produto para gerar tickets.</p></div>
+    }
+    else
+    {
+        <ul class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            @foreach (var produto in Model.Produtos)
+            {
+                <li class="ui-registro flex flex-col gap-3 p-4">
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="min-w-0">
+                            <p class="truncate font-medium">@produto.Nome</p>
+                            <p class="text-lg font-medium text-primary-700 tabular-nums">@produto.Preco.ToString("C2")</p>
+                        </div>
+                        @if (!produto.Ativo) { <span class="badge badge-neutral">Inativo</span> }
+                    </div>
+                    <p class="text-sm text-muted">
+                        @(produto.TicketsGerados == 0 ? "Nenhum ticket gerado" : $"{produto.TicketsGerados:N0} tickets gerados • próximo nº {produto.ProximoNumero:D3}")
+                    </p>
+                    @if (Model.PermiteAlteracoes)
+                    {
+                        <div class="mt-auto flex flex-wrap gap-2">
+                            @if (produto.Ativo)
+                            {
+                                <button type="button" class="btn btn-primary btn-sm" hx-post="@Url.Action("FormularioLote", "Tickets", new { eventoId = Model.Id, produtoId = produto.Id })" hx-target="#modal-eventos-conteudo">
+                                    <svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#ticket-plus" /></svg>Gerar tickets
+                                </button>
+                            }
+                            <button type="button" class="btn btn-outline btn-sm" hx-post="@Url.Action("FormularioProduto", "Eventos", new { id = Model.Id, produtoId = produto.Id })" hx-target="#modal-eventos-conteudo">
+                                Editar
+                            </button>
+                        </div>
+                    }
+                </li>
+            }
+        </ul>
+    }
+</section>
+
+@* ------------------------------------------------------------- Lotes *@
+<section id="lotes" class="mb-8 scroll-mt-24">
+    <div class="secao-cabecalho">
+        <h2 class="secao-titulo">Lotes de tickets</h2>
+    </div>
+
+    @if (Model.Lotes.Count == 0)
+    {
+        <div class="card"><p class="card-body text-sm text-muted">Nenhum lote gerado. Use “Gerar tickets” em um produto.</p></div>
+    }
+    else
+    {
+        <ul class="grid gap-3 lg:grid-cols-2">
+            @foreach (var lote in Model.Lotes)
+            {
+                <li class="ui-registro flex flex-col gap-3 p-4">
+                    <div class="flex items-start justify-between gap-3">
+                        <div>
+                            <p class="font-medium">@lote.Produto</p>
+                            <p class="faixa-numeros">@lote.Faixa</p>
+                        </div>
+                        <a href="@Url.Action("Lote", "Tickets", new { eventoId = Model.Id, loteId = lote.Id })" class="btn btn-primary btn-sm">Gerenciar lote</a>
+                    </div>
+                    <div class="faixas-barra" role="img" aria-label="@lote.Distribuidos de @lote.Quantidade tickets distribuídos">
+                        @if (lote.Distribuidos > 0) { <span class="faixa-responsavel" style="flex-grow: @lote.Distribuidos"></span> }
+                        @if (lote.Disponiveis > 0) { <span class="faixa-livre" style="flex-grow: @lote.Disponiveis"></span> }
+                    </div>
+                    <p class="text-sm text-muted tabular-nums">
+                        @lote.Quantidade.ToString("N0") tickets • @lote.Distribuidos.ToString("N0") distribuídos • @lote.Disponiveis.ToString("N0") disponíveis •
+                        @lote.Responsaveis responsável(is) • potencial @lote.ValorPotencial.ToString("C2")
+                    </p>
+                </li>
+            }
+        </ul>
+    }
+</section>
+
+@* ------------------------------------------------------------- Responsáveis *@
+<section id="responsaveis" class="mb-8 scroll-mt-24">
+    <div class="secao-cabecalho">
+        <h2 class="secao-titulo">Responsáveis</h2>
+    </div>
+
+    @if (Model.Responsaveis.Count == 0)
+    {
+        <div class="card"><p class="card-body text-sm text-muted">Nenhuma faixa de tickets foi atribuída a um responsável.</p></div>
+    }
+    else
+    {
+        <ul class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            @foreach (var responsavel in Model.Responsaveis)
+            {
+                <li class="ui-registro flex flex-col gap-2 p-4">
+                    <div class="flex items-center justify-between gap-3">
+                        <p class="font-medium">@responsavel.Nome</p>
+                        <span class="text-sm text-muted tabular-nums">@responsavel.Tickets.ToString("N0") tickets</span>
+                    </div>
+                    <div class="flex flex-wrap gap-1.5">
+                        @foreach (var faixa in responsavel.Faixas) { <span class="badge badge-neutral font-mono">@faixa</span> }
+                    </div>
+                    <p class="text-xs @(responsavel.PrestacoesPendentes > 0 ? "text-warning-700" : "text-success-700")">
+                        @(responsavel.PrestacoesPendentes > 0 ? $"{responsavel.PrestacoesPendentes} prestação(ões) pendente(s)" : "Prestação de contas em dia")
+                    </p>
+                </li>
+            }
+        </ul>
+    }
+</section>
+
+<div id="gestao-evento" hx-post="/Eventos/@Model.Id/Gestao" hx-trigger="load"><partial name="_Carregando" /></div>

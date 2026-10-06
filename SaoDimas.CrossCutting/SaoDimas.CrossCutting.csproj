@@ -1,0 +1,1 @@
+<Project Sdk="Microsoft.NET.Sdk"><ItemGroup><FrameworkReference Include="Microsoft.AspNetCore.App"/><ProjectReference Include="../SaoDimas.Aplicacao/SaoDimas.Aplicacao.csproj"/><InternalsVisibleTo Include="SaoDimas.Tests"/></ItemGroup></Project>

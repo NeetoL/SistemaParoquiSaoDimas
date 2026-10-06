@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Options" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SaoDimas.Dominio\SaoDimas.Dominio.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Implementações são internal; os testes precisam instanciá-las diretamente. -->
+    <InternalsVisibleTo Include="SaoDimas.Tests" />
+  </ItemGroup>
+
+</Project>

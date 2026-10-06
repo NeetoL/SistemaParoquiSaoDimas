@@ -1,0 +1,75 @@
+@{
+    var titulo = ViewData["Title"] as string;
+    var descricao = ViewData["Descricao"] as string;
+}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@(titulo is null ? "" : $"{titulo} | ")Paróquia São Dimas</title>
+    <link rel="icon" href="~/img/favicon.png" type="image/png" />
+    <link rel="preload" href="~/fonts/rubik-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="~/css/app.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/ui/produto.css" asp-append-version="true" media="screen" />
+    <script src="~/js/preferencias.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body class="produto-web">
+    <a href="#conteudo" class="pular-para-conteudo">Pular para o conteúdo</a>
+
+    <div class="flex min-h-dvh">
+        <partial name="_Sidebar" />
+
+        <div id="app-principal" class="flex min-w-0 flex-1 flex-col">
+            <partial name="_Topbar" />
+
+            <main id="conteudo" tabindex="-1" class="produto-conteudo flex-1 outline-none">
+                <div class="mx-auto w-full max-w-conteudo">
+                    @if (titulo is not null)
+                    {
+                        <header class="pagina-cabecalho">
+                            <div class="min-w-0">
+                                <nav aria-label="breadcrumb">
+                                    <ol class="breadcrumb">
+                                        <li><a asp-controller="Home" asp-action="Index">Início</a></li>
+                                        @if (IsSectionDefined("Breadcrumb")) { @await RenderSectionAsync("Breadcrumb") }
+                                        else { <li aria-current="page">@titulo</li> }
+                                    </ol>
+                                </nav>
+                                <h1 class="pagina-titulo">@titulo</h1>
+                                @if (descricao is not null)
+                                {
+                                    <p class="pagina-descricao">@descricao</p>
+                                }
+                            </div>
+
+                            <div class="flex flex-col gap-3 md:items-end">
+                                @if (IsSectionDefined("Acoes"))
+                                {
+                                    <div class="flex flex-wrap gap-2">
+                                        @await RenderSectionAsync("Acoes")
+                                    </div>
+                                }
+                            </div>
+                        </header>
+                    }
+
+                    @RenderBody()
+                </div>
+            </main>
+
+            <footer class="rodape">
+                <span>@DateTime.Now.Year © Paróquia São Dimas</span>
+                <span>Todos os direitos reservados.</span>
+            </footer>
+        </div>
+    </div>
+
+    <partial name="_Toast" />
+    <partial name="_Scripts" />
+    <partial name="_AcessoRapido" />
+    <script type="module" src="~/js/produto.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
+    <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" />
+    <PackageReference Include="QuestPDF" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SaoDimas.Dominio\SaoDimas.Dominio.csproj" />
+    <!-- Implementa contratos definidos pela Aplicação (ex.: IDizimistaConsultas). -->
+    <ProjectReference Include="..\SaoDimas.Aplicacao\SaoDimas.Aplicacao.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Implementações são internal; os testes precisam instanciá-las diretamente. -->
+    <InternalsVisibleTo Include="SaoDimas.Tests" />
+  </ItemGroup>
+
+</Project>

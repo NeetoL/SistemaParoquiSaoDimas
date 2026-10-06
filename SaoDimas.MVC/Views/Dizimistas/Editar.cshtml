@@ -1,0 +1,23 @@
+@model DizimistaFormularioViewModel
+@{
+    var id = ViewContext.RouteData.Values["id"];
+    ViewData["Title"] = "Editar dizimista";
+    ViewData["Descricao"] = "Atualize os dados e a comunidade de referência do dizimista.";
+}
+
+@section Breadcrumb {
+    <li><a asp-action="Index">Dizimistas</a></li>
+    <li><a asp-action="Detalhes" asp-route-id="@id">Detalhes</a></li>
+    <li aria-current="page">Editar</li>
+}
+
+<form asp-action="Editar" asp-route-id="@id" method="post" novalidate>
+    <partial name="_Formulario" model="Model" />
+
+    <div class="mt-6 flex justify-end gap-2">
+        <a asp-action="Detalhes" asp-route-id="@id" class="btn btn-outline">Cancelar</a>
+        <button type="submit" class="btn btn-primary">
+            <svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#check" /></svg>Salvar alterações
+        </button>
+    </div>
+</form>

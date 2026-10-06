@@ -1,0 +1,80 @@
+@model DizimistaDetalhesDto
+@{
+    ViewData["Title"] = "Envelope de Dízimo";
+    ViewData["Descricao"] = "Molde em folha A4 para imprimir, dobrar e montar o envelope do dizimista.";
+    var urlPdf = Url.Action("Pdf", new { dizimistaId = Model.Id });
+}
+
+@section Breadcrumb {
+    <li><a asp-controller="Dizimistas" asp-action="Index">Dizimistas</a></li>
+    <li><a asp-controller="Dizimistas" asp-action="Detalhes" asp-route-id="@Model.Id">Detalhes</a></li>
+    <li aria-current="page">Envelope de Dízimo</li>
+}
+
+<div class="grid gap-6 xl:grid-cols-[24rem_1fr]">
+    <div class="flex flex-col gap-6">
+        <section class="card">
+            <div class="card-header">
+                <div>
+                    <h2 class="card-title">Envelope de Dízimo</h2>
+                    <p class="card-description">Estes dados saem impressos no envelope.</p>
+                </div>
+            </div>
+            <dl class="lista-dados card-body sm:grid-cols-1">
+                <div><dt>Dizimista</dt><dd>@Model.Nome</dd></div>
+                <div><dt>Código</dt><dd>@Model.Codigo</dd></div>
+                <div><dt>Comunidade</dt><dd>@Model.Comunidade</dd></div>
+            </dl>
+            <div class="card-footer flex-wrap justify-start">
+                <a href="@urlPdf#view=Fit" target="previa-envelope" class="btn btn-outline">
+                    <svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#eye" /></svg>Visualizar Envelope
+                </a>
+                <a href="@Url.Action("Pdf", new { dizimistaId = Model.Id, baixar = true })" class="btn btn-outline">
+                    <svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#file-down" /></svg>Gerar PDF
+                </a>
+                <a href="@urlPdf" target="_blank" rel="noopener" class="btn btn-primary">
+                    <svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#printer" /></svg>Imprimir
+                </a>
+            </div>
+        </section>
+
+        <section class="alerta-escala" role="note">
+            <svg class="icone mt-0.5" aria-hidden="true"><use href="/icons/lucide.svg#ruler" /></svg>
+            <div>
+                <p class="font-semibold">Para manter as dimensões corretas do envelope, imprima em tamanho real / escala 100%.</p>
+                <p class="mt-1">Na janela de impressão, escolha papel <strong>A4</strong> e desmarque “Ajustar à página”.
+                    Confira a régua de 50 mm impressa na aba lateral direita antes de montar.</p>
+            </div>
+        </section>
+
+        <section class="card">
+            <div class="card-header">
+                <h2 class="card-title">Como montar</h2>
+            </div>
+            <ol class="passos-montagem card-body">
+                <li>Imprima em papel A4, escala 100%, somente frente.</li>
+                <li>Dobre para trás as duas abas laterais, nas linhas tracejadas verticais.</li>
+                <li>Passe cola nas áreas hachuradas (abas laterais da parte de baixo).</li>
+                <li>Dobre a parte de baixo para trás, na linha tracejada, e pressione as laterais.</li>
+                <li>Coloque a contribuição e feche a aba superior com cola ou fita adesiva.</li>
+            </ol>
+            <p class="card-body pt-0 text-xs text-muted">
+                Envelope montado: 190 × 120 mm. Espaço interno de cerca de 170 × 115 mm: comporta cédulas de até
+                156 × 70 mm (R$ 100) sem dobrar. Não é necessário cortar.
+            </p>
+        </section>
+    </div>
+
+    <section class="card overflow-hidden" aria-labelledby="titulo-previa">
+        <div class="card-header">
+            <div>
+                <h2 id="titulo-previa" class="card-title">Pré-visualização — folha A4</h2>
+                <p class="card-description">Linhas tracejadas: dobras. Áreas hachuradas: cola.</p>
+            </div>
+        </div>
+        <div class="bg-neutral-200 p-3 sm:p-6">
+            <iframe name="previa-envelope" src="@urlPdf#view=Fit" title="Pré-visualização do Envelope de Dízimo"
+                    class="mx-auto block aspect-[210/297] w-full max-w-[44rem] bg-white shadow-md"></iframe>
+        </div>
+    </section>
+</div>

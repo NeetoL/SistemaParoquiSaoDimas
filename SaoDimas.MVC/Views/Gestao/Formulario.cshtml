@@ -1,0 +1,50 @@
+@model GestaoFormularioViewModel
+@{
+    ViewData["Title"]=Model.Id is null?"Novo registro":"Editar registro";
+    ViewData["Descricao"]=Model.Modulo.Nome;
+    var grupos = Model.Modulo.Chave switch {
+        "contribuicoes" => new[]{("Contribuição",new[]{"data","competencia","valor","forma","tipo"}),("Dizimista e comunidade",new[]{"dizimista","comunidade"})},
+        "financeiro" => new[]{("Lançamento",new[]{"descricao","data","natureza","categoria","valor","forma","comunidade"})},
+        "agenda" => new[]{("Compromisso",new[]{"titulo","tipo"}),("Horário e espaço",new[]{"inicio","fim","local"}),("Responsabilidade",new[]{"responsavel","comunidade"})},
+        "escalas" => new[]{("Serviço e voluntário",new[]{"servico","voluntario"}),("Horário e local",new[]{"inicio","fim","local"})},
+        "sacramentos" => new[]{("Dados da pessoa",new[]{"nome","nascimento","filiacao","conjuge","padrinhos"}),("Celebração",new[]{"tipo","data","celebrante","comunidade"}),("Registro no livro",new[]{"livro","folha","termo"})},
+        _ => new[]{("Dados do cadastro",Model.Modulo.Campos.Where(c=>c.Chave!="observacao").Select(c=>c.Chave).ToArray())}
+    };
+}
+<form action="/Gestao/@Model.Modulo.Chave/Salvar" method="post" enctype="multipart/form-data" class="ui-folha">
+    @Html.AntiForgeryToken()
+    <input name="Id" type="hidden" value="@Model.Id" /><input name="Revisao" type="hidden" value="@Model.Revisao" />
+    <div asp-validation-summary="All" class="alerta-erro m-5" role="alert"></div>
+    <p class="ui-formulario-nota px-6 pt-5">Campos com <span class="obrigatorio" aria-hidden="true">*</span> são obrigatórios.</p>
+    @foreach(var grupo in grupos){
+        <fieldset class="ui-formulario-secao">
+            <legend>@grupo.Item1</legend>
+            <div class="grid gap-5 md:grid-cols-2">
+            @foreach(var c in Model.Modulo.Campos.Where(c=>grupo.Item2.Contains(c.Chave))){
+                var valor=Model.Campos.GetValueOrDefault(c.Chave,"");
+                <div class="form-field @(c.Tipo=="textarea"?"md:col-span-2":"")">
+                    <label for="@c.Chave" class="form-label">@c.Nome @if(c.Obrigatorio){<span class="obrigatorio" aria-hidden="true">*</span>}</label>
+                    @if(c.Tipo=="textarea"){<textarea id="@c.Chave" name="Campos[@c.Chave]" class="form-control" required="@c.Obrigatorio" maxlength="2000">@valor</textarea>}
+                    else if(c.Opcoes is not null||Model.Opcoes.ContainsKey(c.Tipo)){
+                        <select id="@c.Chave" name="Campos[@c.Chave]" class="form-control" required="@c.Obrigatorio">
+                            <option value="">Selecione</option>
+                            @if(c.Opcoes is not null){foreach(var o in c.Opcoes){<option value="@o" selected="@(valor==o)">@o</option>}}
+                            else{foreach(var o in Model.Opcoes[c.Tipo]){<option value="@o.Key" selected="@(valor==o.Key)">@o.Value</option>}}
+                        </select>
+                    }
+                    else{<input id="@c.Chave" name="Campos[@c.Chave]" type="@(c.Tipo=="money"?"number":c.Tipo)" step="@(c.Tipo=="money"?"0.01":null)" min="@(c.Tipo=="money"?"0.01":null)" value="@valor" class="form-control" required="@c.Obrigatorio" maxlength="2000" />}
+                </div>
+            }
+            </div>
+        </fieldset>
+    }
+    <fieldset class="ui-formulario-secao">
+        <legend>Observações e documentos</legend>
+        <div class="grid gap-5 md:grid-cols-2">
+            <div class="form-field"><label for="observacao" class="form-label">Observações (opcional)</label><textarea id="observacao" name="Campos[observacao]" class="form-control" maxlength="2000">@Model.Campos.GetValueOrDefault("observacao","")</textarea></div>
+            <div class="form-field"><label for="comprovante" class="form-label">Comprovante ou documento (opcional)</label><input id="comprovante" name="comprovante" type="file" accept=".pdf,.png,.jpg,.jpeg" class="form-control" /><p class="form-hint">PDF, PNG ou JPEG de até 5 MB. @(Model.AnexoNome is null?"":"Arquivo atual: "+Model.AnexoNome)</p></div>
+        </div>
+    </fieldset>
+    <div class="ui-formulario-acoes"><a href="/Gestao/@Model.Modulo.Chave" class="btn btn-outline">Voltar</a><button class="btn btn-primary">Salvar registro</button></div>
+</form>
+

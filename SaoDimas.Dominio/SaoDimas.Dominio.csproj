@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Núcleo da aplicação. Deve permanecer puro:
+    sem referências a projetos da solution, EF Core, SQL Server ou ASP.NET Core.
+  -->
+
+</Project>

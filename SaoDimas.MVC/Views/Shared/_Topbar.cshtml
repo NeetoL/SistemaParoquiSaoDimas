@@ -1,0 +1,24 @@
+<header class="topbar">
+    <button type="button" class="btn btn-ghost btn-icone -ml-2 lg:hidden"
+            data-sidebar-abrir aria-controls="sidebar" aria-expanded="false" aria-label="Abrir menu">
+        <svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#menu" /></svg>
+    </button>
+
+    <button type="button" class="btn btn-ghost btn-icone -ml-2 hidden lg:inline-flex"
+            data-sidebar-recolher aria-controls="sidebar" aria-expanded="true" aria-label="Recolher menu lateral">
+        <svg class="icone recolhida:hidden" aria-hidden="true"><use href="/icons/lucide.svg#panel-left-close" /></svg>
+        <svg class="icone hidden recolhida:inline-block" aria-hidden="true"><use href="/icons/lucide.svg#panel-left-open" /></svg>
+    </button>
+
+    <a asp-controller="Home" asp-action="Index" class="flex items-center gap-2 rounded-md lg:hidden">
+        <img src="~/img/brasao.webp" alt="" width="22" height="32" class="h-8 w-auto" />
+        <span class="text-sm font-semibold text-foreground">São Dimas</span>
+    </a>
+
+    <span class="topbar-contexto hidden lg:block"><strong>Paróquia São Dimas</strong><small>Área de trabalho</small></span>
+    <button type="button" class="produto-busca" data-acesso-abrir aria-haspopup="dialog" aria-label="Acessar uma área do sistema"><svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#search" /></svg><span>Acessar uma área…</span><kbd>Ctrl K</kbd></button>
+    <div class="ml-auto flex items-center gap-1">
+        <partial name="_AlternarTema" />
+        <partial name="_UserMenu" />
+    </div>
+</header>

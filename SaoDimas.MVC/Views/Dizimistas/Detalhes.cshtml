@@ -1,0 +1,55 @@
+@model DizimistaDetalhesDto
+@{
+    var dizimista = Model;
+    ViewData["Title"] = dizimista.Nome;
+    ViewData["Descricao"] = $"Dizimista nº {dizimista.Codigo}";
+}
+
+@section Breadcrumb {
+    <li><a asp-action="Index">Dizimistas</a></li>
+    <li aria-current="page">Detalhes</li>
+}
+
+@section Acoes {
+    <a asp-action="Editar" asp-route-id="@dizimista.Id" class="btn btn-outline">
+        <svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#pencil" /></svg>Editar
+    </a>
+    <a asp-controller="Envelopes" asp-action="Preparar" asp-route-dizimistaId="@dizimista.Id" class="btn btn-primary">
+        <svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#mail" /></svg>Imprimir Envelope de Dízimo
+    </a>
+}
+
+<div class="grid gap-6 lg:grid-cols-2">
+    <section class="card">
+        <div class="card-header">
+            <h2 class="card-title">Dados pessoais</h2>
+        </div>
+        <dl class="lista-dados card-body">
+            <div><dt>Código</dt><dd>@dizimista.Codigo</dd></div>
+            <div><dt>Nome</dt><dd>@dizimista.Nome</dd></div>
+            <div><dt>CPF</dt><dd>@(dizimista.Cpf ?? "Não informado")</dd></div>
+            <div><dt>Telefone</dt><dd>@(dizimista.Telefone ?? "Não informado")</dd></div>
+            <div><dt>Endereço</dt><dd>@(dizimista.Endereco ?? "Não informado")</dd></div>
+            <div><dt>CEP</dt><dd>@(dizimista.Cep is { Length: 8 } cep ? $"{cep[..5]}-{cep[5..]}" : "Não informado")</dd></div>
+            <div><dt>Bairro</dt><dd>@(dizimista.Bairro ?? "Não informado")</dd></div>
+            <div><dt>Data de nascimento</dt><dd>@(dizimista.DataNascimento?.ToString("dd/MM/yyyy") ?? "Não informada")</dd></div>
+        </dl>
+    </section>
+
+    <section class="card">
+        <div class="card-header">
+            <h2 class="card-title">Informações paroquiais</h2>
+        </div>
+        <dl class="lista-dados card-body">
+            <div><dt>Comunidade</dt><dd>@dizimista.Comunidade</dd></div>
+            <div><dt>Data de entrada</dt><dd>@dizimista.DataEntrada.ToString("dd/MM/yyyy")</dd></div>
+            <div><dt>Status</dt><dd><partial name="_StatusDizimista" model="dizimista.Status" /></dd></div>
+            <div><dt>Cadastrado em</dt><dd>@dizimista.CriadoEm.ToLocalTime().ToString("dd/MM/yyyy 'às' HH:mm")</dd></div>
+            @if (dizimista.AtualizadoEm is { } atualizadoEm)
+            {
+                <div><dt>Última atualização</dt><dd>@atualizadoEm.ToLocalTime().ToString("dd/MM/yyyy 'às' HH:mm")</dd></div>
+            }
+        </dl>
+    </section>
+</div>
+

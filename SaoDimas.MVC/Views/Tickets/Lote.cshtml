@@ -1,0 +1,16 @@
+@model (int EventoId, int LoteId)
+@* Casca da página do lote: o conteúdo depende dos dados guardados no servidor e é carregado por HTMX. *@
+
+<div data-eventos>
+    @Html.AntiForgeryToken()
+
+    <div id="lote-conteudo" hx-post="@Url.Action("ConteudoLote", new { eventoId = Model.EventoId, loteId = Model.LoteId })" hx-trigger="load, eventos:atualizar from:body">
+        <partial name="~/Views/Eventos/_Carregando.cshtml" />
+    </div>
+
+    <partial name="~/Views/Eventos/_ModalEventos.cshtml" />
+</div>
+
+@section Scripts {
+    <partial name="~/Views/Eventos/_ScriptsModulo.cshtml" />
+}

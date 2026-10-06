@@ -1,0 +1,13 @@
+@model SimulacaoLoteDto
+@if (Model.Erro is not null)
+{
+    <p class="form-error">@Model.Erro</p>
+}
+else
+{
+    <dl class="grid grid-cols-3 gap-3 rounded-md border border-border p-3 text-sm">
+        <div><dt class="text-xs text-muted">Faixa</dt><dd class="font-mono font-medium">@Model.Faixa</dd></div>
+        <div><dt class="text-xs text-muted">Quantidade</dt><dd class="font-medium tabular-nums">@Model.Quantidade.ToString("N0")</dd></div>
+        <div><dt class="text-xs text-muted">Valor potencial</dt><dd class="font-medium text-primary-700 tabular-nums">@Model.ValorPotencial.ToString("C2")</dd></div>
+    </dl>
+}

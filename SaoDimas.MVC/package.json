@@ -1,0 +1,23 @@
+{
+  "name": "saodimas-mvc-frontend",
+  "private": true,
+  "type": "module",
+  "description": "Frontend da gestão paroquial São Dimas: Tailwind CSS, Rubik, Lucide e HTMX.",
+  "scripts": {
+    "build": "npm run build:assets && npm run build:css",
+    "build:assets": "node wwwroot/src/build-assets.mjs",
+    "build:css": "tailwindcss -i wwwroot/src/app.css -o wwwroot/css/app.css --minify",
+    "watch:css": "tailwindcss -i wwwroot/src/app.css -o wwwroot/css/app.css --watch",
+    "test:calendario": "node --test tests/calendario.test.mjs"
+  },
+  "devDependencies": {
+    "@fontsource-variable/rubik": "5.3.0",
+    "@romcal/calendar.brazil": "3.0.0-dev.140",
+    "@tailwindcss/cli": "4.3.3",
+    "htmx.org": "2.0.11",
+    "lucide-static": "1.52.0",
+    "romcal": "3.0.0-dev.140",
+    "sharp": "0.35.5",
+    "tailwindcss": "4.3.3"
+  }
+}

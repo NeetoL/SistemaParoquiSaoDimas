@@ -1,0 +1,28 @@
+@model GestaoIndexViewModel
+@{ViewData["Title"]=Model.Modulo.Nome;ViewData["Descricao"]=Model.Modulo.Descricao;var colunas=Model.Modulo.Campos.Where(c=>c.Chave!="observacao").Take(5).ToArray();}
+@section Acoes { <a href="/Gestao/@Model.Modulo.Chave/Novo" class="btn btn-primary">Novo registro</a> }
+<div asp-validation-summary="All" class="alerta-erro mb-4"></div>
+@if(Model.Resumo is not null){<section class="indicadores mb-6"><div class="indicador"><div><p class="indicador-rotulo">Entradas no período</p><strong class="indicador-valor">@Model.Resumo.Entradas.ToString("C")</strong></div></div><div class="indicador"><div><p class="indicador-rotulo">Saídas no período</p><strong class="indicador-valor">@Model.Resumo.Saidas.ToString("C")</strong></div></div><div class="indicador"><div><p class="indicador-rotulo">Saldo registrado</p><strong class="indicador-valor">@Model.Resumo.Saldo.ToString("C")</strong></div></div></section>}
+<form method="get" class="ui-filtros produto-filtros" role="search">
+    <div class="form-field"><label for="busca" class="form-label">Pesquisar registros</label><input id="busca" name="busca" value="@Model.Busca" class="form-control" placeholder="Nome, descrição ou informação…" /></div>
+    <button class="btn btn-primary">Pesquisar</button>
+    @if(Model.Busca is not null || Model.De is not null || Model.Ate is not null || Model.Comunidade is not null){<a href="/Gestao/@Model.Modulo.Chave" class="btn btn-ghost">Limpar filtros</a>}
+    <details class="produto-filtro-avancado" open="@(Model.De is not null || Model.Ate is not null || Model.Comunidade is not null)">
+        <summary>Período e comunidade</summary>
+        <div>
+            <div class="form-field"><label for="de" class="form-label">Data inicial</label><input id="de" name="de" type="date" value="@Model.De?.ToString("yyyy-MM-dd")" class="form-control" /></div>
+            <div class="form-field"><label for="ate" class="form-label">Data final</label><input id="ate" name="ate" type="date" value="@Model.Ate?.ToString("yyyy-MM-dd")" class="form-control" /></div>
+            <div class="form-field"><label for="comunidade" class="form-label">Comunidade</label><select id="comunidade" name="comunidade" class="form-control"><option value="">Todas as comunidades</option>@foreach(var c in Model.Opcoes["comunidade"]){<option value="@c.Key" selected="@(Model.Comunidade==c.Key)">@c.Value</option>}</select></div>
+        </div>
+    </details>
+</form>
+<div class="produto-resultados"><span><strong>@Model.Registros.Count</strong> registro(s) encontrados</span><div class="flex flex-wrap gap-2">
+@if(Model.De is not null){<span class="produto-chip">Desde @Model.De?.ToString("dd/MM/yyyy")</span>}
+@if(Model.Ate is not null){<span class="produto-chip">Até @Model.Ate?.ToString("dd/MM/yyyy")</span>}
+@if(Model.Comunidade is not null){<span class="produto-chip">@Model.Opcoes["comunidade"].GetValueOrDefault(Model.Comunidade)</span>}
+</div></div>
+<div class="flex flex-wrap gap-2 mb-4"><a href="/Gestao/@Model.Modulo.Chave/Exportar?de=@Model.De?.ToString("yyyy-MM-dd")&ate=@Model.Ate?.ToString("yyyy-MM-dd")&comunidade=@Model.Comunidade" class="btn btn-outline btn-sm">Exportar CSV</a><a href="/Gestao/@Model.Modulo.Chave/Importar" class="btn btn-outline btn-sm">Importar planilha</a><a href="/Relatorios?modulo=@Model.Modulo.Chave" class="btn btn-ghost btn-sm">Relatórios</a></div>
+<div class="table-wrapper"><table class="table"><thead><tr>@foreach(var c in colunas){<th scope="col" class="@(c.Tipo=="money"?"ui-numero":null)">@c.Nome</th>}<th>Origem</th><th>Ações</th></tr></thead><tbody>
+@foreach(var r in Model.Registros.Skip((Model.Pagina-1)*20).Take(20)){<tr>@foreach(var c in colunas){<td class="@(c.Tipo=="money"?"ui-numero":null)">@Model.Exibir(c,r.Campos.GetValueOrDefault(c.Chave,""))</td>}<td><span class="badge badge-neutral">@(r.Modulo=="contribuicoes"?"Contribuição":r.Modulo=="eventos-caixa"?"Evento":"Cadastro")</span></td><td>@if(r.Modulo==Model.Modulo.Chave){<a class="btn btn-outline btn-sm" href="/Gestao/@r.Modulo/@r.Id">Ver detalhes</a>}else if(r.Modulo=="contribuicoes"){<a class="btn btn-outline btn-sm" href="/Gestao/contribuicoes/@r.Id">Ver contribuição</a>}else{<a class="btn btn-outline btn-sm" href="/Eventos/Detalhes/@r.Campos.GetValueOrDefault("eventoId")">Ver evento</a>}</td></tr>}
+@if(Model.Registros.Count==0){<tr><td colspan="@(colunas.Length+2)"><div class="empty-state"><h2 class="empty-state-titulo">Nenhum registro encontrado</h2><p class="empty-state-descricao">Cadastre o primeiro registro ou ajuste os filtros.</p></div></td></tr>}
+</tbody></table></div><div class="paginacao"><p class="text-muted">@Model.Registros.Count registro(s) · Página @Model.Pagina</p><div class="flex gap-2">@if(Model.Pagina>1){<a class="btn btn-outline btn-sm" href="?pagina=@(Model.Pagina-1)&busca=@Uri.EscapeDataString(Model.Busca??"")&de=@Model.De?.ToString("yyyy-MM-dd")&ate=@Model.Ate?.ToString("yyyy-MM-dd")&comunidade=@Model.Comunidade">Anterior</a>}@if(Model.Pagina*20<Model.Registros.Count){<a class="btn btn-outline btn-sm" href="?pagina=@(Model.Pagina+1)&busca=@Uri.EscapeDataString(Model.Busca??"")&de=@Model.De?.ToString("yyyy-MM-dd")&ate=@Model.Ate?.ToString("yyyy-MM-dd")&comunidade=@Model.Comunidade">Próxima</a>}</div></div>

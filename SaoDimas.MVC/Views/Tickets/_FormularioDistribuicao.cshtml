@@ -1,0 +1,64 @@
+@model DistribuicaoFormularioViewModel
+@{
+    var lote = Model.Lote;
+    var livres = lote.Faixas.Where(faixa => faixa.Tipo == TipoFaixaLote.Livre).Select(faixa => faixa.Faixa).ToList();
+    var responsaveis = lote.Faixas.Select(faixa => faixa.Responsavel).OfType<string>().Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+}
+
+<form hx-post="@Url.Action("SalvarDistribuicao", "Tickets", new { eventoId = lote.EventoId, loteId = lote.Id })" hx-target="#modal-eventos-conteudo" novalidate>
+    <input type="hidden" asp-for="DistribuicaoId" />
+    <div class="modal-header">
+        <div>
+            <h2 class="modal-title">@(Model.DistribuicaoId is null ? "Distribuir tickets" : "Editar faixa")</h2>
+            <p class="modal-description">@lote.Produto — lote <span class="font-mono">@lote.Faixa</span></p>
+        </div>
+        <button type="button" class="btn btn-ghost btn-sm btn-icone" data-modal-fechar aria-label="Fechar">
+            <svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#x" /></svg>
+        </button>
+    </div>
+
+    <div class="modal-body flex flex-col gap-5">
+        <div asp-validation-summary="ModelOnly" class="alerta-erro"></div>
+        <div class="form-field"><label asp-for="Operador" class="form-label">Distribuído por</label><input asp-for="Operador" class="form-control" required maxlength="150" /><span asp-validation-for="Operador" class="form-error"></span></div>
+
+        <p class="text-sm text-muted">
+            Faixas livres:
+            @if (livres.Count == 0) { <span>nenhuma</span> }
+            else { <span class="font-mono text-foreground">@string.Join("  •  ", livres)</span> }
+        </p>
+
+        <div class="grid gap-5 sm:grid-cols-3" data-faixa-quantidade>
+            <div class="form-field">
+                <label asp-for="NumeroInicial" class="form-label">Número inicial <span class="obrigatorio" aria-hidden="true">*</span></label>
+                <input asp-for="NumeroInicial" type="number" min="1" class="form-control" required />
+                <span asp-validation-for="NumeroInicial" class="form-error"></span>
+            </div>
+            <div class="form-field">
+                <label asp-for="NumeroFinal" class="form-label">Número final <span class="obrigatorio" aria-hidden="true">*</span></label>
+                <input asp-for="NumeroFinal" type="number" min="1" class="form-control" required />
+                <span asp-validation-for="NumeroFinal" class="form-error"></span>
+            </div>
+            <div class="form-field">
+                <span class="form-label">Quantidade</span>
+                <p class="flex h-10 items-center text-sm font-medium tabular-nums" data-faixa-quantidade-saida aria-live="polite">
+                    @(Model.NumeroInicial > 0 && Model.NumeroFinal >= Model.NumeroInicial ? $"{Model.NumeroFinal - Model.NumeroInicial + 1} tickets" : "—")
+                </p>
+            </div>
+        </div>
+
+        <div class="form-field">
+            <label asp-for="Responsavel" class="form-label">Responsável</label>
+            <input asp-for="Responsavel" class="form-control" list="responsaveis-lote" autocomplete="off" placeholder="Ex.: João da Silva" />
+            <datalist id="responsaveis-lote">
+                @foreach (var nome in responsaveis) { <option value="@nome"></option> }
+            </datalist>
+            <span class="form-hint">Opcional. Não precisa ser dizimista nem usuário do sistema; a mesma pessoa pode ter várias faixas.</span>
+            <span asp-validation-for="Responsavel" class="form-error"></span>
+        </div>
+    </div>
+
+    <div class="modal-footer">
+        <button type="button" class="btn btn-outline" data-modal-fechar>Cancelar</button>
+        <button type="submit" class="btn btn-primary">@(Model.DistribuicaoId is null ? "Confirmar distribuição" : "Salvar alterações")</button>
+    </div>
+</form>

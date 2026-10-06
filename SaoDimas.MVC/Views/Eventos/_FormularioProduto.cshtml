@@ -1,0 +1,48 @@
+@model ProdutoFormularioViewModel
+
+<form hx-post="@Url.Action("SalvarProduto", "Eventos", new { id = Model.EventoId })" hx-target="#modal-eventos-conteudo" novalidate>
+    <input type="hidden" asp-for="ProdutoId" />
+    <div class="modal-header">
+        <div>
+            <h2 class="modal-title">@(Model.ProdutoId is null ? "Novo produto" : "Editar produto")</h2>
+            <p class="modal-description">Produto vendido no evento (ex.: feijoada, refrigerante, água).</p>
+        </div>
+        <button type="button" class="btn btn-ghost btn-sm btn-icone" data-modal-fechar aria-label="Fechar">
+            <svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#x" /></svg>
+        </button>
+    </div>
+
+    <div class="modal-body flex flex-col gap-5">
+        <div asp-validation-summary="ModelOnly" class="alerta-erro"></div>
+        <div class="form-field"><label asp-for="Operador" class="form-label">Registrado por</label><input asp-for="Operador" class="form-control" required maxlength="150" /><span asp-validation-for="Operador" class="form-error"></span></div>
+
+        <div class="form-field">
+            <label asp-for="Nome" class="form-label">Nome <span class="obrigatorio" aria-hidden="true">*</span></label>
+            <input asp-for="Nome" class="form-control" placeholder="Ex.: Feijoada" required />
+            <span asp-validation-for="Nome" class="form-error"></span>
+        </div>
+
+        <div class="form-field">
+            <label asp-for="Preco" class="form-label">Preço (R$) <span class="obrigatorio" aria-hidden="true">*</span></label>
+            <input asp-for="Preco" class="form-control" inputmode="decimal" placeholder="25,00" required />
+            <span class="form-hint">Lotes já gerados mantêm o preço da época da geração.</span>
+            <span asp-validation-for="Preco" class="form-error"></span>
+        </div>
+
+        <div class="form-field">
+            <label asp-for="Descricao" class="form-label">Descrição</label>
+            <textarea asp-for="Descricao" class="form-control" rows="2"></textarea>
+            <span asp-validation-for="Descricao" class="form-error"></span>
+        </div>
+
+        <label class="form-check">
+            <input asp-for="Ativo" type="checkbox" />
+            Ativo (pode receber novos lotes de tickets)
+        </label>
+    </div>
+
+    <div class="modal-footer">
+        <button type="button" class="btn btn-outline" data-modal-fechar>Cancelar</button>
+        <button type="submit" class="btn btn-primary">@(Model.ProdutoId is null ? "Cadastrar produto" : "Salvar alterações")</button>
+    </div>
+</form>
