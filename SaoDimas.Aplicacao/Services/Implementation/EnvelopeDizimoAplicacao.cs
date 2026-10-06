@@ -75,11 +75,6 @@ internal sealed class EnvelopeDizimoAplicacao(
             return Resultado<ArquivoPdf>.Falha(new Erro(string.Empty, $"Não há dizimistas ativos em {comunidade.NomeCompleto}."));
         }
 
-        if (ativos.Count > IEnvelopeDizimoAplicacao.LimitePorDocumento)
-        {
-            return Resultado<ArquivoPdf>.Falha(LimiteExcedido());
-        }
-
         return Resultado<ArquivoPdf>.Ok(new ArquivoPdf(pdf.Gerar(ativos), $"envelopes-dizimo-{Slug(comunidade.NomeCompleto)}.pdf"));
     }
 

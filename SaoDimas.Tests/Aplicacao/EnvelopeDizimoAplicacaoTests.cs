@@ -124,6 +124,15 @@ public sealed class EnvelopeDizimoAplicacaoTests
         Assert.Empty(_pdf.Chamadas);
     }
 
+    [Fact]
+    public async Task Comunidade_inclui_todos_os_ativos_mesmo_acima_de_500()
+    {
+        var ativos = Enumerable.Range(1, 522).Select(i => new DizimistaIdentificacaoDto(i, i.ToString(System.Globalization.CultureInfo.InvariantCulture), $"Pessoa {i:D4}", "Capela teste")).ToArray();
+        var app = new EnvelopeDizimoAplicacao(new DizimistasFake(ativos, new() { [1] = ativos }), new ComunidadesFake(Criar.Comunidade(1)), _pdf);
+        Assert.True((await app.GerarParaComunidadeAsync(1, CancellationToken.None)).Sucesso);
+        Assert.Equal(522, Assert.Single(_pdf.Chamadas).Count);
+    }
+
     private sealed class DizimistasFake(
         DizimistaIdentificacaoDto[] dizimistas,
         Dictionary<int, DizimistaIdentificacaoDto[]> ativosPorComunidade) : IDizimistaConsultas

@@ -25,15 +25,37 @@
 }
 
 @section Acoes {
-    <a asp-controller="Envelopes" asp-action="TodosAtivos" class="btn btn-outline" title="Baixar um PDF com todos os dizimistas ativos de todas as comunidades, independentemente dos filtros.">
-        <svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#mail" /></svg>Envelopes de todos os ativos
-    </a>
+    <button type="button" data-modal-abrir="modal-envelopes-ativos" class="btn btn-outline">
+        <svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#mail" /></svg>Gerar envelopes dos ativos
+    </button>
     <a href="/Cadastros/Importar" class="btn btn-outline">Importar planilha</a>
     <a href="/Cadastros/Exportar" class="btn btn-outline">Exportar CSV</a>
     <a asp-action="Novo" class="btn btn-primary">
         <svg class="icone" aria-hidden="true"><use href="/icons/lucide.svg#plus" /></svg>Novo dizimista
     </a>
 }
+
+<dialog id="modal-envelopes-ativos" class="modal max-w-lg" aria-labelledby="envelopes-ativos-titulo">
+    <form method="get" asp-controller="Envelopes" asp-action="TodosAtivos" class="p-6">
+        <h2 id="envelopes-ativos-titulo" class="text-lg font-semibold">Gerar envelopes dos ativos</h2>
+        <p class="ui-formulario-nota mb-5">Um envelope por folha A4, em ordem alfabética pelo nome do dizimista.</p>
+        <div class="form-field">
+            <label for="envelopes-comunidade" class="form-label">Paróquia ou capela</label>
+            <select id="envelopes-comunidade" name="comunidadeId" class="form-control" aria-describedby="envelopes-ativos-ajuda">
+                <option value="">TODOS — paróquia e capelas</option>
+                @foreach (var comunidade in Model.Comunidades)
+                {
+                    <option value="@comunidade.Id">@comunidade.Nome</option>
+                }
+            </select>
+            <p id="envelopes-ativos-ajuda" class="ui-formulario-nota">Inclui todos os ativos da opção escolhida, independentemente da pesquisa e da página atual.</p>
+        </div>
+        <div class="mt-6 flex flex-wrap justify-end gap-2">
+            <button type="button" data-modal-fechar class="btn btn-outline">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Baixar envelopes</button>
+        </div>
+    </form>
+</dialog>
 
 <form method="get" asp-action="Index" class="ui-filtros mb-6 flex flex-col gap-3 p-4 md:flex-row md:items-end" role="search">
     <div class="form-field flex-1">

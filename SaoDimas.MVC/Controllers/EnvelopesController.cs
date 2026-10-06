@@ -17,9 +17,12 @@ public sealed class EnvelopesController(
     IEnvelopeDizimoAplicacao envelopes) : Controller
 {
     [HttpGet("Envelopes/TodosAtivos")]
-    public async Task<IActionResult> TodosAtivos(CancellationToken cancellationToken)
+    public async Task<IActionResult> TodosAtivos(int? comunidadeId, CancellationToken cancellationToken)
     {
-        var resultado = await envelopes.GerarTodosAtivosAsync(cancellationToken);
+        if (!ModelState.IsValid) return BadRequest("Selecione uma comunidade válida.");
+        var resultado = comunidadeId.HasValue
+            ? await envelopes.GerarParaComunidadeAsync(comunidadeId.Value, cancellationToken)
+            : await envelopes.GerarTodosAtivosAsync(cancellationToken);
         if (!resultado.Sucesso)
         {
             TempData[MensagemTempData.Erro] = string.Join(" ", resultado.Erros.Select(e => e.Mensagem));
