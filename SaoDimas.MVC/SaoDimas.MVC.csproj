@@ -39,6 +39,10 @@
     <Touch Files="node_modules/.instalado" AlwaysCreate="true" />
   </Target>
 
+  <ItemGroup>
+    <FrontendSaida Include="wwwroot/img/dizimo-expressao-fe.jpeg;wwwroot/img/pix-qrcode.png" />
+  </ItemGroup>
+
   <Target Name="FrontendBuild" DependsOnTargets="FrontendInstalar" BeforeTargets="BeforeBuild"
           Inputs="@(FrontendEntrada)" Outputs="@(FrontendSaida)">
     <Exec Command="npm run build" />

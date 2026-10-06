@@ -79,6 +79,30 @@ if (!(Test-Path -LiteralPath $executavel)) {
 }
 
 New-Item -ItemType Directory -Path $dados, $logs -Force | Out-Null
+# Repara imagens de documentos numa publicacao existente, sem alterar os originais.
+$recursosReparados = $false
+foreach ($nomeImagem in @('dizimo-expressao-fe.jpeg', 'pix-qrcode.png')) {
+    $fonteImagem = Join-Path $raiz ('SaoDimas.MVC\wwwroot\src\marca\' + $nomeImagem)
+    $destinoImagem = Join-Path $aplicacao ('wwwroot\img\' + $nomeImagem)
+    if (Test-Path -LiteralPath $fonteImagem) {
+        if (!(Test-Path -LiteralPath $destinoImagem) -or (Get-FileHash -LiteralPath $fonteImagem).Hash -ne (Get-FileHash -LiteralPath $destinoImagem).Hash) {
+            New-Item -ItemType Directory -Path (Split-Path -Parent $destinoImagem) -Force | Out-Null
+            Copy-Item -LiteralPath $fonteImagem -Destination $destinoImagem -Force
+            $recursosReparados = $true
+        }
+    }
+    if (!(Test-Path -LiteralPath $destinoImagem)) { throw ('Falta a imagem ' + $nomeImagem + '. Atualize a pasta completa do sistema.') }
+}
+# Lazy<Image> conserva falhas em memoria: reiniciar apenas o processo deste pacote.
+if ($recursosReparados -and (Test-Path -LiteralPath (Join-Path $logs 'processo.txt'))) {
+    $idAnterior = [int](Get-Content -LiteralPath (Join-Path $logs 'processo.txt'))
+    $processoAnterior = Get-Process -Id $idAnterior -ErrorAction SilentlyContinue
+    if ($processoAnterior -and $processoAnterior.Path -eq $executavel) {
+        Stop-Process -Id $idAnterior -ErrorAction Stop
+        $processoAnterior.WaitForExit(5000) | Out-Null
+        Write-Host 'Imagens reparadas. Reiniciando o sistema...'
+    }
+}
 $arquivoDados = Join-Path $dados 'sistema.json'
 $dadosOriginais = Join-Path $raiz 'SaoDimas.MVC\App_Data\sistema.json'
 if (!(Test-Path -LiteralPath $arquivoDados) -and (Test-Path -LiteralPath $dadosOriginais)) {

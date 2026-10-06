@@ -99,6 +99,9 @@ async function gerarImagensDaMarca() {
 
 await gerarSpriteDeIcones();
 await gerarImagensDaMarca();
+// Recursos originais do envelope: copiar sem transformar os bytes ou a aparência.
+await copiar(join(wwwroot, "src", "marca", "dizimo-expressao-fe.jpeg"), join(wwwroot, "img", "dizimo-expressao-fe.jpeg"));
+await copiar(join(wwwroot, "src", "marca", "pix-qrcode.png"), join(wwwroot, "img", "pix-qrcode.png"));
 await copiar(
   join(raiz, "node_modules", "@fontsource-variable", "rubik", "files", "rubik-latin-wght-normal.woff2"),
   join(wwwroot, "fonts", "rubik-latin-wght-normal.woff2")
