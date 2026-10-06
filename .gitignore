@@ -489,6 +489,10 @@ SaoDimas.MVC/wwwroot/lib/
 SaoDimas.MVC/wwwroot/img/
 
 .artifacts/
+.ferramentas/
+SISTEMA/
+DADOS/
+LOGS/
 
 # Dados locais do sistema e cópias de segurança
 SaoDimas.MVC/App_Data/
