@@ -31,12 +31,50 @@ function Baixar($urlOrigem, $destino) {
     Invoke-WebRequest -UseBasicParsing -Uri $urlOrigem -OutFile $destino
 }
 
-if (!(Test-Path -LiteralPath $executavel)) {
+$git = Get-Command git -ErrorAction SilentlyContinue
+$repositorio = Test-Path -LiteralPath (Join-Path $raiz '.git')
+if ($repositorio -and $git) {
+    $alteracoes = & $git.Source -C $raiz status --porcelain
+    if ($LASTEXITCODE -ne 0) { throw 'Nao foi possivel verificar o repositorio.' }
+    if ($alteracoes) {
+        Write-Host 'Alteracoes locais encontradas: usando o codigo local, sem fazer pull.' -ForegroundColor Yellow
+    } else {
+        Write-Host 'Buscando atualizacoes...'
+        & $git.Source -C $raiz pull --ff-only
+        if ($LASTEXITCODE -ne 0) { Write-Host 'Nao foi possivel atualizar pelo Git. Usando o codigo local; confira a conexao e a mensagem acima.' -ForegroundColor Yellow }
+    }
+}
+
+function ObterVersaoCodigo {
+    if ($repositorio -and $git) {
+        $arquivos = @(& $git.Source -C $raiz ls-files)
+        if ($LASTEXITCODE -ne 0) { throw 'Nao foi possivel identificar os arquivos do sistema.' }
+    } else {
+        $arquivos = @(Get-ChildItem -LiteralPath $raiz -Directory -Filter 'SaoDimas.*' | ForEach-Object {
+            Get-ChildItem -LiteralPath $_.FullName -File -Recurse | Where-Object {
+                $_.FullName -notmatch '\\(bin|obj|node_modules|App_Data)\\' -and $_.FullName -notmatch '\\wwwroot\\(img|css|lib)\\'
+            } | ForEach-Object { $_.FullName.Substring($raiz.Length + 1) }
+        })
+    }
+    $conteudo = foreach ($arquivo in ($arquivos | Sort-Object)) {
+        if (($arquivo -notmatch '^SaoDimas\.' -and $arquivo -notmatch '^(Directory\.Build\.(props|targets)|global\.json|[Nn]u[Gg]et\.config)$') -or $arquivo -match '^SaoDimas\.Tests[\\/]' -or $arquivo -match '[\\/]App_Data[\\/]') { continue }
+        $caminho = Join-Path $raiz $arquivo
+        if (Test-Path -LiteralPath $caminho -PathType Leaf) { $arquivo + ':' + (Get-FileHash -LiteralPath $caminho -Algorithm SHA256).Hash }
+    }
+    $sha = [Security.Cryptography.SHA256]::Create()
+    try { ([BitConverter]::ToString($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes(($conteudo -join "`n"))))).Replace('-', '') }
+    finally { $sha.Dispose() }
+}
+$projeto = Join-Path $raiz 'SaoDimas.MVC\SaoDimas.MVC.csproj'
+$versaoCodigo = if (Test-Path -LiteralPath $projeto) { ObterVersaoCodigo } else { $null }
+$marcadorVersao = Join-Path $aplicacao 'versao-codigo.txt'
+$versaoInstalada = if (Test-Path -LiteralPath $marcadorVersao) { (Get-Content -LiteralPath $marcadorVersao -Raw).Trim() } else { $null }
+if (!(Test-Path -LiteralPath $executavel) -or ($versaoCodigo -and $versaoCodigo -ne $versaoInstalada)) {
     $projeto = Join-Path $raiz 'SaoDimas.MVC\SaoDimas.MVC.csproj'
     if (!(Test-Path -LiteralPath $projeto)) {
         throw 'Copie a pasta completa da instalacao, incluindo SISTEMA e INICIAR.bat. O BAT sozinho nao contem o aplicativo.'
     }
-    Write-Host 'Primeira execucao: preparando as dependencias. E necessario acesso a internet.'
+    Write-Host 'Preparando a versao atual e as dependencias. Pode ser necessario acesso a internet.'
     $ferramentas = Join-Path $raiz '.ferramentas'
     $dotnetPasta = Join-Path $ferramentas 'dotnet'
     $nodePasta = Join-Path $ferramentas 'node'
@@ -73,8 +111,23 @@ if (!(Test-Path -LiteralPath $executavel)) {
     Push-Location $raiz
     try {
         Write-Host 'Preparando o aplicativo. Aguarde...'
-        & $dotnetExe publish $projeto -c Release -r win-x64 --self-contained true -o $aplicacao --artifacts-path (Join-Path $ferramentas 'build')
-        if ($LASTEXITCODE -ne 0) { throw 'A preparacao do aplicativo falhou. Verifique a conexao e tente novamente.' }
+        $novaPublicacao = Join-Path $raiz ('SISTEMA_NOVO-' + [Guid]::NewGuid().ToString('N'))
+        & $dotnetExe publish $projeto -c Release -r win-x64 --self-contained true -o $novaPublicacao --artifacts-path (Join-Path $ferramentas 'build')
+        if ($LASTEXITCODE -ne 0) { throw 'A preparacao falhou. A versao anterior foi preservada. Verifique a conexao e tente novamente.' }
+        if (!(Test-Path -LiteralPath (Join-Path $novaPublicacao 'SaoDimas.MVC.exe'))) { throw 'A nova versao esta incompleta.' }
+        $versaoCodigo | Set-Content -LiteralPath (Join-Path $novaPublicacao 'versao-codigo.txt') -Encoding ASCII
+        Get-Process -Name 'SaoDimas.MVC' -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq $executavel } | ForEach-Object {
+            Stop-Process -Id $_.Id -ErrorAction Stop
+            if (!$_.WaitForExit(10000)) { throw 'O sistema anterior nao encerrou. Tente novamente.' }
+        }
+        $pastaAnterior = Join-Path $raiz ('SISTEMA_ANTERIOR-' + (Get-Date -Format 'yyyyMMdd-HHmmss-fff'))
+        if (Test-Path -LiteralPath $aplicacao) { Move-Item -LiteralPath $aplicacao -Destination $pastaAnterior }
+        try { Move-Item -LiteralPath $novaPublicacao -Destination $aplicacao }
+        catch {
+            if (Test-Path -LiteralPath $pastaAnterior) { Move-Item -LiteralPath $pastaAnterior -Destination $aplicacao }
+            throw
+        }
+        Write-Host 'Aplicacao atualizada. Dados preservados.' -ForegroundColor Green
     } finally { Pop-Location }
 }
 

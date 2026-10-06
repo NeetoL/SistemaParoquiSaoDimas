@@ -14,7 +14,11 @@ Acesso restrito a este computador. O lancador utiliza o ambiente Development par
 
 ## Quando utilizado na pasta do codigo-fonte
 
-Se SISTEMA ainda nao existe, o mesmo BAT baixa .NET SDK 10 e Node.js LTS 22 dos distribuidores oficiais, instala-os localmente em .ferramentas, prepara o frontend e publica o programa com runtime incluido. Essa primeira preparacao exige internet e pode demorar. Nao instala programas globalmente nem requer administrador.
+Na pasta do repositorio, INICIAR verifica o Git e executa pull quando nao existem alteracoes locais. Se estiver sem conexao ou o Git nao conseguir atualizar, avisa e utiliza o codigo disponivel. Alteracoes locais sao preservadas.
+
+O BAT compara o codigo com a versao publicada e recompila quando houver mudancas, inclusive nos envelopes. Na primeira execucao com este atualizador, a publicacao antiga sem marcador tambem e recompilada. Baixa .NET SDK 10 e Node.js LTS 22 dos distribuidores oficiais quando necessario e instala-os localmente em .ferramentas. Essa preparacao pode exigir internet e demorar. Nao instala programas globalmente nem requer administrador.
+
+A nova versao e preparada em outra pasta antes de parar somente a aplicacao desta instalacao. Depois, a pasta anterior fica guardada em SISTEMA_ANTERIOR com data e hora, e o sistema inicia com a nova versao. Se a compilacao falhar, a instalacao anterior permanece intacta. DADOS nao participa da substituicao. Sem mudancas no codigo, o BAT apenas inicia ou abre o sistema existente. Pacotes ZIP sem codigo-fonte continuam iniciando a versao incluida; para atualiza-los, substitua a pasta SISTEMA pelo pacote novo, mantendo DADOS.
 
 Downloads do Node sao verificados por SHA-256 contra o manifesto oficial. Falhas interrompem a preparacao e mostram a mensagem. Dados existentes em DADOS nunca sao sobrescritos na inicializacao.
 
