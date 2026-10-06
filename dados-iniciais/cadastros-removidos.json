@@ -1,0 +1,26 @@
+[
+  {
+    "id": 1,
+    "nome": "João da Silva",
+    "telefone": "11900000001",
+    "comunidadeId": 1
+  },
+  {
+    "id": 2,
+    "nome": "Maria Souza",
+    "telefone": "11900000002",
+    "comunidadeId": 2
+  },
+  {
+    "id": 3,
+    "nome": "José Santos",
+    "telefone": "11900000003",
+    "comunidadeId": 3
+  },
+  {
+    "id": 4,
+    "nome": "Ana Lima",
+    "telefone": "1130000004",
+    "comunidadeId": 4
+  }
+]

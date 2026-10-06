@@ -176,6 +176,21 @@ if (Test-Path -LiteralPath $cadastrosIniciais) {
             if ($atual.versao -ne 1) { throw 'Formato dos dados atuais nao reconhecido.' }
             $adicionados = 0
             $codigosIncluidos = 0
+            $exemplosRemovidos = 0
+            $manifestoRemovidos = Join-Path $raiz 'dados-iniciais\cadastros-removidos.json'
+            if (Test-Path -LiteralPath $manifestoRemovidos) {
+                $removidos = @(Get-Content -LiteralPath $manifestoRemovidos -Raw -Encoding UTF8 | ConvertFrom-Json)
+                $preservados = @($atual.dizimistas | Where-Object {
+                    $registro = $_
+                    $exemplo = @($removidos | Where-Object {
+                        $_.id -eq $registro.id -and $_.nome -eq $registro.nome -and
+                        $_.telefone -eq $registro.telefone -and $_.comunidadeId -eq $registro.comunidadeId
+                    })
+                    $registro.codigoOriginal -or $exemplo.Count -eq 0
+                })
+                $exemplosRemovidos = @($atual.dizimistas).Count - $preservados.Count
+                $atual.dizimistas = $preservados
+            }
             foreach ($comunidade in $origem.comunidades) {
                 if (!($atual.comunidades | Where-Object { $_.id -eq $comunidade.id })) { $atual.comunidades = @($atual.comunidades) + @($comunidade) }
             }
@@ -199,7 +214,7 @@ if (Test-Path -LiteralPath $cadastrosIniciais) {
                 $atual.sequenciaDizimista = [int][Math]::Max($atual.sequenciaDizimista, $pessoa.id)
                 $adicionados++
             }
-            if ($adicionados -gt 0 -or $codigosIncluidos -gt 0) {
+            if ($adicionados -gt 0 -or $codigosIncluidos -gt 0 -or $exemplosRemovidos -gt 0) {
                 $pastaBackups = Join-Path $dados 'backups'
                 New-Item -ItemType Directory -Path $pastaBackups -Force | Out-Null
                 $backup = Join-Path $pastaBackups ('antes-cadastros-' + (Get-Date -Format 'yyyyMMdd-HHmmss-fff') + '.json')
@@ -208,6 +223,7 @@ if (Test-Path -LiteralPath $cadastrosIniciais) {
                 try { [IO.File]::Replace($temporario, $arquivoDados, $backup) }
                 finally { if (Test-Path -LiteralPath $temporario) { Remove-Item -LiteralPath $temporario } }
                 Write-Host ($adicionados.ToString() + ' dizimistas incluidos; cadastros anteriores preservados.')
+                if ($exemplosRemovidos -gt 0) { Write-Host ($exemplosRemovidos.ToString() + ' cadastros de exemplo removidos.') }
                 if ($codigosIncluidos -gt 0) { Write-Host ($codigosIncluidos.ToString() + ' codigos originais das planilhas incluidos.') }
             }
         }
