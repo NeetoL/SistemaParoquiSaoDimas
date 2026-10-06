@@ -44,6 +44,31 @@ public sealed class EnvelopeDizimoPdfServiceTests
     }
 
     [Fact]
+    public void Frente_e_verso_sao_iguais_e_borda_inferior_alinha_com_dobra_superior()
+    {
+        Assert.Equal(Molde.DobraBase - Molde.DobraFechamento, Molde.AlturaFolha - Molde.DobraBase);
+        Assert.Equal(Molde.DobraFechamento, 2 * Molde.DobraBase - Molde.AlturaFolha);
+        Assert.Equal(118.5f, Molde.AlturaEnvelope);
+        Assert.Equal(190, Molde.LarguraFolha - 2 * Molde.AbaLateral);
+    }
+
+    [Fact]
+    public void Controle_mensal_dobrado_fica_inteiramente_sob_aba_de_fechamento()
+    {
+        using var pdf = PdfDocument.Open(CriarServico().Gerar([Matriz]));
+        var pagina = pdf.GetPage(1);
+        var controle = pagina.Letters.Select(letra => Milimetros(letra, pagina))
+            .Where(caixa => caixa.Topo >= Molde.LimiteVisivelDoVerso).ToArray();
+        Assert.NotEmpty(controle);
+        Assert.All(controle, caixa =>
+        {
+            // Reflexão na dobra da base: a tabela deve caber na faixa coberta pelos 60 mm da aba.
+            Assert.InRange(2 * Molde.DobraBase - caixa.Base, Molde.DobraFechamento + Molde.AreaSegura, 2 * Molde.DobraFechamento);
+            Assert.InRange(2 * Molde.DobraBase - caixa.Topo, Molde.DobraFechamento, 2 * Molde.DobraFechamento - Molde.AreaSegura);
+        });
+    }
+
+    [Fact]
     public void Lote_imprime_endereco_da_igreja_correspondente_sem_misturar_modelos()
     {
         Dictionary<string, string> enderecos = new()

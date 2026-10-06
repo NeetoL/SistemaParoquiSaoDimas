@@ -12,12 +12,11 @@ using SaoDimas.Aplicacao.Services.Interface;
 namespace SaoDimas.Infraestrutura.Services.Implementation;
 
 /// <summary>
-/// Molde do Envelope de Dízimo: folha A4 em tamanho real que, sem cortes, vira um envelope de 190 × 120 mm.
+/// Molde do Envelope de Dízimo: A4 inteiro, sem cortes, com frente e verso iguais (190 × 118,5 mm).
 /// <para>
 /// Geometria (mm, origem no canto superior esquerdo da folha):
-/// abas laterais de 10 mm (x 0–10 e 200–210) dobram para trás; aba de fechamento y 0–60; frente y 60–180;
-/// verso y 180–297. As abas laterais do verso recebem cola e se unem às da frente, fechando as laterais.
-/// Interior útil ≈ 170 × 115 mm: a maior cédula brasileira (R$ 100, 156 × 70 mm) entra sem dobrar.
+/// abas laterais de 10 mm (x 0–10 e 200–210); fechamento y 0–60; frente y 60–178,5; verso y 178,5–297.
+/// A borda inferior encosta na dobra superior ao fechar a base. As abas laterais do verso recebem cola.
 /// </para>
 /// <para>
 /// O verso e a aba ficam atrás do envelope montado e por isso são impressos girados 180°.
@@ -32,7 +31,9 @@ internal sealed class EnvelopeDizimoPdfService(IOptions<ConfiguracaoParoquia> op
     public const float AlturaFolha = 297;
     public const float AbaLateral = 10;
     public const float DobraFechamento = 60;
-    public const float DobraBase = 180;
+    // Dois painéis exatamente iguais: dobrar a borda inferior até a linha superior basta para alinhar.
+    public const float AlturaEnvelope = (AlturaFolha - DobraFechamento) / 2;
+    public const float DobraBase = DobraFechamento + AlturaEnvelope;
 
     /// <summary>
     /// Com a aba fechada (60 mm sobre o verso), só a faixa do verso entre a dobra da base e esta linha fica visível.
@@ -130,8 +131,8 @@ internal sealed class EnvelopeDizimoPdfService(IOptions<ConfiguracaoParoquia> op
             const float xEsquerda = 5.4f, xDireita = DobraDireita + 1;
             Instrucao(camadas.Layer(), xEsquerda, DobraFechamento + 4, DobraBase - 4, "1  Dobre as abas laterais para trás, nos tracejados.", girarParaEsquerda: true);
             Instrucao(camadas.Layer(), xEsquerda, 7, DobraFechamento - 3, "2  Passe cola nas áreas hachuradas.", girarParaEsquerda: true);
-            Instrucao(camadas.Layer(), xDireita, 7, DobraFechamento - 3, "3  Dobre a base para trás e pressione.", girarParaEsquerda: false);
-            Instrucao(camadas.Layer(), xDireita, DobraFechamento + 57, DobraBase - 4, "4  Coloque sua contribuição e feche a aba.", girarParaEsquerda: false);
+            Instrucao(camadas.Layer(), xDireita, 7, DobraFechamento - 3, "3  Encoste a borda inferior nesta dobra e pressione.", girarParaEsquerda: false);
+            Instrucao(camadas.Layer(), xDireita, DobraFechamento + 57, DobraBase - 4, "4  Coloque a contribuição e feche a aba superior.", girarParaEsquerda: false);
             Instrucao(camadas.Layer(), XRegua + 1.8f, YRegua, YRegua + 50, "50 mm — confira a escala 100%", girarParaEsquerda: false, largura: 2.4f, tamanho: 5);
         });
     }
@@ -309,7 +310,9 @@ internal sealed class EnvelopeDizimoPdfService(IOptions<ConfiguracaoParoquia> op
             coluna.Item().PaddingTop(1, Unit.Millimetre).Text(envelope.Comunidade).FontSize(7).SemiBold().FontColor(Verde).AlignCenter();
             if (!string.IsNullOrWhiteSpace(endereco))
                 coluna.Item().Text(endereco).FontSize(7).FontColor(TextoSecundario).AlignCenter();
-            coluna.Item().ExtendVertical().AlignBottom().AlignCenter().Text("Feche aqui com cola ou fita adesiva").FontSize(7).Italic().FontColor(TextoSecundario);
+            coluna.Item().ExtendVertical().AlignBottom().AlignCenter()
+                .Text("A4 • Tamanho real (100%) • Sem cortes • Feche com cola ou fita adesiva")
+                .FontSize(6.5f).FontColor(TextoSecundario);
         });
     }
 
@@ -344,10 +347,15 @@ internal sealed class EnvelopeDizimoPdfService(IOptions<ConfiguracaoParoquia> op
 
         // Dobras (tracejado).
         const string tracejado = "stroke=\"#7D8781\" stroke-width=\"0.25\" stroke-dasharray=\"2 1.5\"";
-        Linha(AbaLateral, 0, AbaLateral, AlturaFolha, tracejado);
-        Linha(DobraDireita, 0, DobraDireita, AlturaFolha, tracejado);
-        Linha(0, DobraFechamento, LarguraFolha, DobraFechamento, tracejado);
-        Linha(0, DobraBase, LarguraFolha, DobraBase, tracejado);
+        // Não depender de impressão sem margens: todos os traços úteis ficam a 5 mm das bordas.
+        Linha(AbaLateral, 5, AbaLateral, AlturaFolha - 5, tracejado);
+        Linha(DobraDireita, 5, DobraDireita, AlturaFolha - 5, tracejado);
+        Linha(5, DobraFechamento, LarguraFolha - 5, DobraFechamento, tracejado);
+        Linha(5, DobraBase, LarguraFolha - 5, DobraBase, tracejado);
+        // Marcas de encaixe reforçam a linha onde deve chegar a borda inferior.
+        const string encaixe = "stroke=\"#17633A\" stroke-width=\"0.65\"";
+        Linha(5, DobraFechamento, AbaLateral + 3, DobraFechamento, encaixe);
+        Linha(DobraDireita - 3, DobraFechamento, LarguraFolha - 5, DobraFechamento, encaixe);
 
         // Áreas de cola: abas laterais do verso, hachuradas (dentro da área imprimível, a partir de 5 mm da borda).
         const string hachura = "stroke=\"#B5BDB7\" stroke-width=\"0.3\"";

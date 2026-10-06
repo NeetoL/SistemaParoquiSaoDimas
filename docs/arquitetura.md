@@ -151,13 +151,19 @@ impressos são sempre consultados no backend. Individual (`/Dizimistas/{id}/Enve
 (`/Dizimistas/Envelopes?ids=..`) ou todos os ativos de uma comunidade (`/Dizimistas/Envelopes?comunidadeId=..`):
 uma folha A4 por dizimista.
 
-Geometria (mm, folha 210 × 297, sem cortes): abas laterais de 10 mm dobradas para trás; aba de fechamento y 0–60;
-frente y 60–180; verso y 180–297 (abas laterais do verso recebem cola). Envelope montado 190 × 120 mm, interior
-≈ 170 × 115 mm (cédula de R$ 100: 156 × 70 mm). Verso e aba são impressos girados 180°; com a aba fechada só
-y 180–240 do verso fica visível. Textos a ≥ 6 mm das dobras; instruções e régua de 50 mm (conferência da escala
-100%) ficam nas abas laterais, escondidas após a montagem. As constantes estão em `EnvelopeDizimoPdfService` e
-as regras físicas são verificadas por `EnvelopeDizimoPdfServiceTests` (PDF real inspecionado com PdfPig).
+Geometria (mm, A4 inteiro 210 × 297, sem cortes): abas laterais de 10 mm; fechamento y 0–60;
+frente y 60–178,5; verso y 178,5–297. Frente e verso têm exatamente 118,5 mm: a borda inferior
+encosta na dobra superior ao fechar a base, dispensando medição. Envelope montado 190 × 118,5 mm.
+Primeiro dobrar as laterais; passar cola nas áreas hachuradas; alinhar a borda inferior à dobra
+superior e pressionar; colocar a contribuição e fechar a aba. São quatro linhas de dobra.
 
+Verso e aba são impressos girados 180°. Dados pessoais ficam na frente; QR Pix na faixa visível
+y 178,5–237; tabela mensal com 13º em y ≥ 237, escondida pela aba fechada. Textos e imagens
+respeitam as áreas seguras. Guias úteis ficam a pelo menos 5 mm das bordas, sem exigir impressão
+sem margens. Imprimir A4, tamanho real 100%, sem ajustar à página; conferir a régua de 50 mm.
+As constantes estão em EnvelopeDizimoPdfService; testes inspecionam o PDF real e verificam o
+alinhamento das bordas e a posição do controle após dobrar. A validação é geométrica e visual;
+a montagem física depende da escala da impressora e deve ser conferida na primeira folha.
 Dados institucionais (nome, contatos, caminho da logo de impressão) vêm da seção `Paroquia` do appsettings
 (`ConfiguracaoParoquia`).
 
