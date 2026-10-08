@@ -36,7 +36,7 @@ internal sealed class RifaPdfService(IOptions<ConfiguracaoParoquia> opcoes, IHos
                                 c.Item().Row(h => { h.ConstantItem(7, Unit.Millimetre).Height(7, Unit.Millimetre).Image(_logo.Value).FitArea(); h.RelativeItem().PaddingLeft(3, Unit.Millimetre).AlignMiddle().Text("BILHETE DO PARTICIPANTE").FontSize(7).FontColor("#56647C"); h.ConstantItem(70).AlignRight().Text(numero.ToString("D4", CultureInfo.InvariantCulture)).FontSize(16).Bold().FontColor("#3063DA"); });
                                 c.Item().PaddingTop(2).Text(rifa.Nome).FontSize(10).Bold();
                                 c.Item().PaddingTop(1).Text("Sorteio: " + rifa.DataSorteio.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture) + "   ·   " + rifa.Valor.ToString("C", CultureInfo.GetCultureInfo("pt-BR"))).SemiBold();
-                                
+
                                 c.Item().PaddingTop(1).Text("Prêmios: " + string.Join("  ·  ", rifa.Premios.Split('\n').Select((p, i) => (i + 1).ToString(CultureInfo.InvariantCulture) + "º " + p))).FontSize(8);
                                 c.Item().PaddingTop(1).Text("Comprador: " + (comprador?.Comprador ?? "________________________________")).FontSize(8);
                                 c.Item().Text("Vendedor: " + (string.IsNullOrWhiteSpace(comprador?.Vendedor) ? "________________________________" : comprador.Vendedor)).FontSize(8);
