@@ -1,3 +1,6 @@
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
+using SaoDimas.Aplicacao.Configuracoes;
 using System.Globalization;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
@@ -6,8 +9,10 @@ using SaoDimas.Aplicacao.Dtos;
 using SaoDimas.Aplicacao.Services.Interface;
 namespace SaoDimas.Infraestrutura.Services.Implementation;
 
-internal sealed class RifaPdfService : IRifaPdfService
+internal sealed class RifaPdfService(IOptions<ConfiguracaoParoquia> opcoes, IHostEnvironment ambiente) : IRifaPdfService
 {
+    private readonly Lazy<Image> _logo = new(() => Image.FromFile(Path.Combine(ambiente.ContentRootPath, opcoes.Value.CaminhoLogoImpressao)));
+
     public byte[] Gerar(RifaDto rifa, string comunidade, int inicio, int fim)
     {
         ArgumentNullException.ThrowIfNull(rifa);
@@ -28,7 +33,7 @@ internal sealed class RifaPdfService : IRifaPdfService
                         {
                             row.RelativeItem(2).Padding(4, Unit.Millimetre).Column(c =>
                             {
-                                c.Item().Row(h => { h.RelativeItem().Text("BILHETE DO PARTICIPANTE").FontSize(7).FontColor("#56647C"); h.ConstantItem(70).AlignRight().Text(numero.ToString("D4", CultureInfo.InvariantCulture)).FontSize(18).Bold().FontColor("#3063DA"); });
+                                c.Item().Row(h => { h.ConstantItem(9, Unit.Millimetre).Height(10, Unit.Millimetre).Image(_logo.Value).FitArea(); h.RelativeItem().PaddingLeft(3, Unit.Millimetre).AlignMiddle().Text("BILHETE DO PARTICIPANTE").FontSize(7).FontColor("#56647C"); h.ConstantItem(70).AlignRight().Text(numero.ToString("D4", CultureInfo.InvariantCulture)).FontSize(18).Bold().FontColor("#3063DA"); });
                                 c.Item().PaddingTop(2).Text(rifa.Nome).FontSize(12).Bold();
                                 c.Item().PaddingTop(2).Text("Sorteio: " + rifa.DataSorteio.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture) + "   ·   " + rifa.Valor.ToString("C", CultureInfo.GetCultureInfo("pt-BR"))).SemiBold();
                                 c.Item().PaddingTop(3).Text("PRÊMIOS").FontSize(7).SemiBold();
