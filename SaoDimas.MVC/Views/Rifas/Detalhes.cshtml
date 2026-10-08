@@ -6,7 +6,7 @@
 <dialog id="modal-rifa-pdf" class="modal max-w-lg" aria-labelledby="rifa-pdf-titulo">
 <form method="get" asp-action="Pdf" class="p-6"><input type="hidden" name="id" value="@r.Id"/>
 <h2 id="rifa-pdf-titulo" class="text-lg font-semibold">Bilhetes da rifa em PDF</h2>
-<p class="ui-formulario-nota mb-5">Até quatro bilhetes por folha A4, com canhoto para a organização. Textos longos usam mais espaço para preservar as informações. Inclui números disponíveis e reservados.</p>
+<p class="ui-formulario-nota mb-5">Até seis bilhetes por folha A4, com canhoto para a organização. Textos longos usam mais espaço para preservar as informações. Inclui números disponíveis e reservados.</p>
 <div class="grid gap-4 md:grid-cols-2"><div class="form-field"><label for="pdf-inicio" class="form-label">Do número</label><input id="pdf-inicio" name="inicio" type="number" min="1" max="@r.Quantidade" value="1" class="form-control" required/></div>
 <div class="form-field"><label for="pdf-fim" class="form-label">Até o número</label><input id="pdf-fim" name="fim" type="number" min="1" max="@r.Quantidade" value="@r.Quantidade" class="form-control" required/></div></div>
 <p class="ui-formulario-nota mt-4">Para todos os bilhetes, mantenha o intervalo completo. Imprima em tamanho real (100%).</p>
