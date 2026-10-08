@@ -56,6 +56,7 @@ public static class DependencyInjection
         // (https://www.questpdf.com/license). Singleton: sem estado por request; mantém a logo em memória.
         QuestPDF.Settings.License = LicenseType.Community;
         services.AddSingleton<IEnvelopeDizimoPdfService, EnvelopeDizimoPdfService>();
+        services.AddSingleton<IRifaPdfService, RifaPdfService>();
         services.AddSingleton<IImpressaoTicketService, ImpressaoTicketService>();
         services.AddSingleton<IRelatorioFechamentoService, RelatorioFechamentoService>();
 

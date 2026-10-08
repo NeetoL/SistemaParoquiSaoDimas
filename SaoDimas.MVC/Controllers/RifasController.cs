@@ -7,7 +7,7 @@ using SaoDimas.Aplicacao.Services.Interface;
 using SaoDimas.MVC.Models;
 namespace SaoDimas.MVC.Controllers;
 
-public sealed class RifasController(IRifasAplicacao rifas, IComunidadeAplicacao comunidades) : Controller
+public sealed class RifasController(IRifasAplicacao rifas, IComunidadeAplicacao comunidades, IRifaPdfService pdf) : Controller
 {
     public async Task<IActionResult> Index(CancellationToken ct) => View(await rifas.ListarAsync(ct));
     private async Task Opcoes(RifaFormularioViewModel model, CancellationToken ct) => model.Comunidades = (await comunidades.ListarTodasAsync(ct)).Where(c => c.Ativa).Select(c => new SelectListItem(c.Nome, c.Id.ToString(CultureInfo.InvariantCulture))).ToArray();
@@ -45,6 +45,16 @@ public sealed class RifasController(IRifasAplicacao rifas, IComunidadeAplicacao 
         string Q(string s) { if (s.Length > 0 && "=+-@".Contains(s[0])) s = "'" + s; return "\"" + s.Replace("\"", "\"\"") + "\""; }
         foreach (var n in r.Numeros.OrderBy(n => n.Numero)) csv.AppendLine(string.Join(';', new[] { n.Numero.ToString("D4", CultureInfo.InvariantCulture), n.Comprador, n.Telefone, n.Vendedor, n.Pago ? "Pago" : "Reservado", r.Valor.ToString(CultureInfo.InvariantCulture), n.Forma }.Select(Q)));
         return File(Encoding.UTF8.GetPreamble().Concat(Encoding.UTF8.GetBytes(csv.ToString())).ToArray(), "text/csv", "rifa-" + id + ".csv");
+    }
+    [HttpGet]
+    public async Task<IActionResult> Pdf(Guid id, int? inicio, int? fim, CancellationToken ct)
+    {
+        var r = await rifas.ObterAsync(id, ct); if (r is null) return NotFound();
+        var primeiro = inicio ?? 1; var ultimo = fim ?? r.Quantidade;
+        if (!ModelState.IsValid || primeiro < 1 || ultimo < primeiro || ultimo > r.Quantidade) { TempData[MensagemTempData.Erro] = "Confira o intervalo de números da rifa."; return RedirectToAction(nameof(Detalhes), new { id }); }
+        var comunidade = (await comunidades.ListarTodasAsync(ct)).FirstOrDefault(c => c.Id == r.ComunidadeId)?.Nome ?? "Paróquia São Dimas";
+        ct.ThrowIfCancellationRequested();
+        return File(pdf.Gerar(r, comunidade, primeiro, ultimo), "application/pdf", $"rifa-{primeiro:D4}-{ultimo:D4}.pdf");
     }
     public async Task<IActionResult> Imprimir(Guid id, int? numero, CancellationToken ct) { var r = await rifas.ObterAsync(id, ct); if (r is null) return NotFound(); if (numero.HasValue && !r.Numeros.Any(n => n.Numero == numero)) return NotFound(); return View(r with { Numeros = r.Numeros.Where(n => numero is null || n.Numero == numero).ToList() }); }
 }

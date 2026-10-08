@@ -1,7 +1,15 @@
 @model RifaDetalhesViewModel
 @{var r=Model.Rifa;var pagos=r.Numeros.Count(n=>n.Pago);var reservados=r.Numeros.Count-pagos;var ocupados=r.Numeros.ToDictionary(n=>n.Numero);var aberta=r.Situacao=="Aberta";var alteravel=r.Situacao is "Aberta" or "Fechada";ViewData["Title"]=r.Nome;ViewData["Descricao"]="Sorteio em "+r.DataSorteio.ToString("dd/MM/yyyy")+" · "+Model.Comunidades.FirstOrDefault(c=>c.Id==r.ComunidadeId)?.Nome+" · "+r.Situacao;}
 @section Breadcrumb {<li><a asp-action="Index">Rifas</a></li><li>@r.Nome</li>}
-@section Acoes {<a asp-action="Exportar" asp-route-id="@r.Id" class="btn btn-outline">Exportar CSV</a><a asp-action="Imprimir" asp-route-id="@r.Id" target="_blank" rel="noopener" class="btn btn-outline">Imprimir bilhetes</a>}
+@section Acoes {<button type="button" data-modal-abrir="modal-rifa-pdf" class="btn btn-primary">Baixar bilhetes PDF</button><a asp-action="Exportar" asp-route-id="@r.Id" class="btn btn-outline">Exportar CSV</a><a asp-action="Imprimir" asp-route-id="@r.Id" target="_blank" rel="noopener" class="btn btn-outline">Imprimir bilhetes</a>}
+<dialog id="modal-rifa-pdf" class="modal max-w-lg" aria-labelledby="rifa-pdf-titulo">
+<form method="get" asp-action="Pdf" class="p-6"><input type="hidden" name="id" value="@r.Id"/>
+<h2 id="rifa-pdf-titulo" class="text-lg font-semibold">Bilhetes da rifa em PDF</h2>
+<p class="ui-formulario-nota mb-5">Até quatro bilhetes por folha A4, com canhoto para a organização. Textos longos usam mais espaço para preservar as informações. Inclui números disponíveis e reservados.</p>
+<div class="grid gap-4 md:grid-cols-2"><div class="form-field"><label for="pdf-inicio" class="form-label">Do número</label><input id="pdf-inicio" name="inicio" type="number" min="1" max="@r.Quantidade" value="1" class="form-control" required/></div>
+<div class="form-field"><label for="pdf-fim" class="form-label">Até o número</label><input id="pdf-fim" name="fim" type="number" min="1" max="@r.Quantidade" value="@r.Quantidade" class="form-control" required/></div></div>
+<p class="ui-formulario-nota mt-4">Para todos os bilhetes, mantenha o intervalo completo. Imprima em tamanho real (100%).</p>
+<div class="mt-6 flex justify-end gap-2"><button type="button" data-modal-fechar class="btn btn-outline">Cancelar</button><button class="btn btn-primary">Gerar PDF</button></div></form></dialog>
 @if(Model.Erro is not null){<div class="alerta-erro" role="alert">@Model.Erro</div>}
 <div class="grid gap-4 md:grid-cols-3 mb-6"><section class="ui-folha"><h2 class="form-label">Disponíveis</h2><p>@(r.Quantidade-r.Numeros.Count) de @r.Quantidade</p></section><section class="ui-folha"><h2 class="form-label">Reservados / pagos</h2><p>@reservados reservados · @pagos pagos</p></section><section class="ui-folha"><h2 class="form-label">Arrecadação</h2><p>@((pagos*r.Valor).ToString("C")) recebido</p><p class="text-sm text-muted">@((reservados*r.Valor).ToString("C")) pendente · @r.Valor.ToString("C") por número</p></section></div>
 <section class="ui-folha mb-6"><h2>Prêmios</h2><ol>@foreach(var premio in r.Premios.Split('\n')){<li>@premio</li>}</ol>@foreach(var resultado in r.Resultados.OrderBy(x=>x.Premio)){<p><strong>@resultado.Premio º prêmio: @resultado.Numero.ToString("D4") — @resultado.Comprador</strong><br/><span class="text-sm text-muted">@resultado.Referencia</span></p>}</section>
