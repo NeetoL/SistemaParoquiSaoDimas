@@ -23,3 +23,10 @@ Cada gravação escreve um arquivo temporário, confirma sua escrita em disco e 
 ## Validação
 
 Testes cobrem cadastro/edição, consultas e envelope após reinício, eventos, tickets e caixa, gravações simultâneas em duas instâncias, CPF duplicado, arquivo corrompido e importação do navegador. O fluxo completo foi validado no Edge sem conexão SQL, incluindo caixa, relatório PDF, nova edição anual e acesso por outro contexto sem localStorage.
+
+## Aniversários sem ano
+
+O campo compatível `dataNascimento` dos dizimistas armazena somente `DD/MM`, representado no domínio por `Aniversario` (dia e mês). Não se cria um ano fictício. Datas JSON antigas em `AAAA-MM-DD` continuam legíveis: o ano é descartado ao ler e o próximo salvamento usa `DD/MM`. O formulário, a consulta, o CSV e o envelope usam dia/mês; 29/02 é permitido e combinações inexistentes são rejeitadas.
+
+A base inicial recupera os 432 aniversários sem ano que foram descartados na primeira importação. Na atualização, somente campos vazios de registros com comunidade, nome e código correspondentes recebem o aniversário original. Valores já preenchidos são preservados. Isso permite recuperar os dados no outro computador sem substituir seu arquivo JSON. A migração SQL futura converte as datas para texto DD/MM; remover o ano é irreversível sem backup.
+

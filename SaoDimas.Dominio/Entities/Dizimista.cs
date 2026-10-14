@@ -34,7 +34,7 @@ public sealed class Dizimista
     public string? Endereco { get; private set; }
     public string? Cep { get; private set; }
     public string? Bairro { get; private set; }
-    public DateOnly? DataNascimento { get; private set; }
+    public Aniversario? DataNascimento { get; private set; }
 
     public int ComunidadeId { get; private set; }
 
@@ -55,7 +55,7 @@ public sealed class Dizimista
         Comunidade comunidade,
         DateOnly dataEntrada,
         StatusDizimista status,
-        DateTimeOffset agora, string? endereco = null, string? cep = null, string? bairro = null, DateOnly? dataNascimento = null, string? codigoOriginal = null)
+        DateTimeOffset agora, string? endereco = null, string? cep = null, string? bairro = null, Aniversario? dataNascimento = null, string? codigoOriginal = null)
     {
         ArgumentNullException.ThrowIfNull(comunidade);
 
@@ -74,7 +74,7 @@ public sealed class Dizimista
         Comunidade comunidade,
         DateOnly dataEntrada,
         StatusDizimista status,
-        DateTimeOffset agora, string? endereco = null, string? cep = null, string? bairro = null, DateOnly? dataNascimento = null, string? codigoOriginal = null)
+        DateTimeOffset agora, string? endereco = null, string? cep = null, string? bairro = null, Aniversario? dataNascimento = null, string? codigoOriginal = null)
     {
         ArgumentNullException.ThrowIfNull(comunidade);
 
@@ -99,7 +99,7 @@ public sealed class Dizimista
         bool novoVinculo,
         DateOnly dataEntrada,
         StatusDizimista status,
-        DateTimeOffset agora, string? endereco = null, string? cep = null, string? bairro = null, DateOnly? dataNascimento = null, string? codigoOriginal = null)
+        DateTimeOffset agora, string? endereco = null, string? cep = null, string? bairro = null, Aniversario? dataNascimento = null, string? codigoOriginal = null)
     {
         var erros = new List<Erro>();
         var codigoNormalizado = codigoOriginal?.Trim();
@@ -160,8 +160,8 @@ public sealed class Dizimista
         if (bairroNormalizado.Length > 100) erros.Add(new Erro(nameof(Bairro), "O bairro deve ter no máximo 100 caracteres."));
         if (!string.IsNullOrWhiteSpace(cep) && (cepNormalizado.Length != 8 || cep!.Any(c => !char.IsDigit(c) && c != '-' && !char.IsWhiteSpace(c))))
             erros.Add(new Erro(nameof(Cep), "Informe um CEP com 8 dígitos."));
-        if (dataNascimento is not null && (dataNascimento > hoje || dataNascimento < DataEntradaMinima))
-            erros.Add(new Erro(nameof(DataNascimento), "Informe uma data de nascimento válida, que não seja futura."));
+        if (dataNascimento is not null && !dataNascimento.Value.Valido)
+            erros.Add(new Erro(nameof(DataNascimento), "Informe um aniversário válido (dia/mês)."));
 
         if (erros.Count > 0)
         {

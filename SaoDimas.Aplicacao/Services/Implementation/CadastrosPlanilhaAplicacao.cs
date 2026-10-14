@@ -17,7 +17,7 @@ internal sealed class CadastrosPlanilhaAplicacao(IDizimistaRepositorio repositor
   var novos=new List<Dizimista>();int n=1;
   foreach(var linha in linhas.Skip(1)){n++;if(linha.Length!=nomes.Length)return new(false,"Colunas inválidas na linha "+n+".");var campos=nomes.Zip(linha).ToDictionary(p=>p.First,p=>p.Second);string V(string k)=>campos.GetValueOrDefault(k,"");
    if(!int.TryParse(V("comunidadeId"),out var comunidadeId)||!DateOnly.TryParseExact(V("dataEntrada"),"yyyy-MM-dd",CultureInfo.InvariantCulture,DateTimeStyles.None,out var entrada)||!Enum.TryParse<StatusDizimista>(V("status"),out var status))return new(false,"Confira comunidade, dataEntrada (AAAA-MM-DD) e status (Ativo/Inativo) na linha "+n+".");
-   DateOnly? nascimento=null;if(V("dataNascimento").Length>0){if(!DateOnly.TryParseExact(V("dataNascimento"),"yyyy-MM-dd",CultureInfo.InvariantCulture,DateTimeStyles.None,out var data))return new(false,"Nascimento inválido na linha "+n+".");nascimento=data;}
+   SaoDimas.Dominio.ValueObjects.Aniversario? nascimento=null;if(V("dataNascimento").Length>0){if(!SaoDimas.Dominio.ValueObjects.Aniversario.TryParse(V("dataNascimento"),out var data))return new(false,"Aniversário inválido (use dia/mês) na linha "+n+".");nascimento=data;}
    var comunidade=await comunidades.ObterPorIdAsync(comunidadeId,ct);if(comunidade is null)return new(false,"Comunidade não encontrada na linha "+n+".");
    var codigo=V("codigoOriginal").Trim();if(codigo.Length==0)return new(false,"Informe codigoOriginal na linha "+n+".");
    if(novos.Any(d=>string.Equals(d.Codigo,codigo,StringComparison.OrdinalIgnoreCase))||await repositorio.ExisteCodigoAsync(codigo,null,ct))return new(false,"Código já cadastrado ou repetido no arquivo na linha "+n+".");
@@ -30,6 +30,6 @@ internal sealed class CadastrosPlanilhaAplicacao(IDizimistaRepositorio repositor
  }
  public async Task<string> ExportarAsync(CancellationToken ct){
   var csv=new StringBuilder(string.Join(';',Colunas)+"\n");int pagina=1;PaginaResultado<DizimistaResumoDto> lista;
-  do{lista=await consultas.PesquisarAsync(new(){Pagina=pagina++,TamanhoPagina=100},ct);foreach(var r in lista.Itens){var d=(await consultas.ObterParaEdicaoAsync(r.Id,ct))!;string Q(string? texto){texto??="";if(texto.Length>0&&"=+-@".Contains(texto[0]))texto="'"+texto;return "\""+texto.Replace("\"","\"\"")+"\"";}csv.AppendLine(string.Join(';',new[]{d.Nome,d.Cpf,d.Telefone,d.ComunidadeId.ToString(CultureInfo.InvariantCulture),d.DataEntrada.ToString("yyyy-MM-dd",CultureInfo.InvariantCulture),d.Status.ToString(),d.Endereco,d.Cep,d.Bairro,d.DataNascimento?.ToString("yyyy-MM-dd",CultureInfo.InvariantCulture),d.CodigoOriginal}.Select(Q)));}}while(lista.TemProxima);return csv.ToString();
+  do{lista=await consultas.PesquisarAsync(new(){Pagina=pagina++,TamanhoPagina=100},ct);foreach(var r in lista.Itens){var d=(await consultas.ObterParaEdicaoAsync(r.Id,ct))!;string Q(string? texto){texto??="";if(texto.Length>0&&"=+-@".Contains(texto[0]))texto="'"+texto;return "\""+texto.Replace("\"","\"\"")+"\"";}csv.AppendLine(string.Join(';',new[]{d.Nome,d.Cpf,d.Telefone,d.ComunidadeId.ToString(CultureInfo.InvariantCulture),d.DataEntrada.ToString("yyyy-MM-dd",CultureInfo.InvariantCulture),d.Status.ToString(),d.Endereco,d.Cep,d.Bairro,d.DataNascimento?.ToString(),d.CodigoOriginal}.Select(Q)));}}while(lista.TemProxima);return csv.ToString();
  }
 }

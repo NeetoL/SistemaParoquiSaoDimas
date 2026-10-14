@@ -18,7 +18,7 @@ public sealed class DizimistaTests
         Assert.Equal("21775280", dizimista.Cep);
         Assert.Equal("Padre Miguel", dizimista.Bairro);
         var invalido = dizimista.Atualizar("Outro nome", null, null, CapelaAtiva, Criar.Hoje,
-            StatusDizimista.Ativo, RelogioFixo.Padrao, "Outro endereço", "123", "Outro bairro", Criar.Hoje.AddDays(1));
+            StatusDizimista.Ativo, RelogioFixo.Padrao, "Outro endereço", "123", "Outro bairro", default(SaoDimas.Dominio.ValueObjects.Aniversario));
         Assert.False(invalido.Sucesso);
         Assert.Equal("Ana", dizimista.Nome);
         Assert.Equal("21775280", dizimista.Cep);

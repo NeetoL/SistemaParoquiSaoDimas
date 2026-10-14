@@ -7,7 +7,7 @@ using SaoDimas.Dominio.Enums;
 namespace SaoDimas.Infraestrutura.Persistencia.Json;
 internal sealed class ArquivoSistemaJson : IDisposable
 {
-    internal static readonly JsonSerializerOptions Serializacao = new(JsonSerializerDefaults.Web) { WriteIndented = true };
+    internal static readonly JsonSerializerOptions Serializacao = new(JsonSerializerDefaults.Web) { WriteIndented = true, Converters = { new AniversarioJsonConverter() } };
     internal SemaphoreSlim Exclusao { get; } = new(1, 1);
     public string Caminho { get; }
     private readonly Lazy<Dictionary<(int Comunidade, string Nome), List<DizimistaRegistro>>> _codigosOriginais;
@@ -39,13 +39,18 @@ internal sealed class ArquivoSistemaJson : IDisposable
         for (var i = 0; i < documento!.Dizimistas.Count; i++)
         {
             var pessoa = documento.Dizimistas[i];
-            if (!string.IsNullOrWhiteSpace(pessoa.CodigoOriginal)
-                || !_codigosOriginais.Value.TryGetValue((pessoa.ComunidadeId, pessoa.Nome.ToUpperInvariant()), out var fontes)) continue;
-            var correspondentes = fontes.Where(f => f.Id == pessoa.Id
-                || (f.Telefone == pessoa.Telefone && f.Endereco == pessoa.Endereco)).ToList();
+            if (!_codigosOriginais.Value.TryGetValue((pessoa.ComunidadeId, pessoa.Nome.ToUpperInvariant()), out var fontes)) continue;
+            var correspondentes = fontes.Where(f =>
+                (!string.IsNullOrWhiteSpace(pessoa.CodigoOriginal) && f.CodigoOriginal == pessoa.CodigoOriginal)
+                || (string.IsNullOrWhiteSpace(pessoa.CodigoOriginal) && (f.Id == pessoa.Id
+                    || (f.Telefone == pessoa.Telefone && f.Endereco == pessoa.Endereco)))).ToList();
             if (correspondentes.Count == 1)
-                documento.Dizimistas[i] = pessoa with { CodigoOriginal = correspondentes[0].CodigoOriginal };
+                documento.Dizimistas[i] = pessoa with {
+                    CodigoOriginal = pessoa.CodigoOriginal ?? correspondentes[0].CodigoOriginal,
+                    DataNascimento = documento.AniversariosOriginaisRecuperados ? pessoa.DataNascimento : pessoa.DataNascimento ?? correspondentes[0].DataNascimento
+                };
         }
+        if (_codigosOriginais.Value.Count > 0) documento.AniversariosOriginaisRecuperados = true;
         return documento!;
     }
     internal static void Validar(DocumentoSistema? documento)

@@ -29,7 +29,7 @@
 
         <div class="form-field">
             <label asp-for="DataNascimento" class="form-label"></label>
-            <input asp-for="DataNascimento" type="date" class="form-control" />
+            <input asp-for="DataNascimento" type="text" inputmode="numeric" maxlength="5" placeholder="DD/MM" class="form-control" />
             <span asp-validation-for="DataNascimento" class="form-error"></span>
         </div>
     </div>

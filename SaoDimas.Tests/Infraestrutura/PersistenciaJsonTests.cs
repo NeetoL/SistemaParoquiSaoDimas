@@ -95,7 +95,7 @@ public sealed partial class PersistenciaJsonTests : IDisposable
         {
             var detalhes = await Requisicao<IDizimistaAplicacao, DizimistaDetalhesDto?>(provider, app => app.ObterDetalhesAsync(id, CancellationToken.None));
             Assert.Equal("21775280", detalhes!.Cep);
-            Assert.Equal(new DateOnly(1990, 7, 12), detalhes.DataNascimento);
+            Assert.Equal(new SaoDimas.Dominio.ValueObjects.Aniversario(12, 7), detalhes.DataNascimento);
             var pagina = await Requisicao<IDizimistaAplicacao, PaginaResultado<DizimistaResumoDto>>(provider, app =>
                 app.PesquisarAsync(new FiltroDizimistas { Busca = "joao" }, CancellationToken.None));
             Assert.Equal(id, Assert.Single(pagina.Itens).Id);

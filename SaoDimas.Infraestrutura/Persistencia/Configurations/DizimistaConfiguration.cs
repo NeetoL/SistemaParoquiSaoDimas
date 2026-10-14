@@ -38,7 +38,9 @@ internal sealed class DizimistaConfiguration : IEntityTypeConfiguration<Dizimist
         builder.Property(d => d.Endereco).HasMaxLength(250);
         builder.Property(d => d.Bairro).HasMaxLength(100);
         builder.Property(d => d.Cep).HasMaxLength(8).IsUnicode(false);
-        builder.Property(d => d.DataNascimento);
+        builder.Property(d => d.DataNascimento).HasConversion(
+            v => v.HasValue ? v.Value.ToString() : null,
+            v => v == null ? null : SaoDimas.Dominio.ValueObjects.Aniversario.Parse(v)).HasMaxLength(5);
 
         builder.Property(dizimista => dizimista.DataEntrada).IsRequired();
         builder.Property(dizimista => dizimista.Status).IsRequired();

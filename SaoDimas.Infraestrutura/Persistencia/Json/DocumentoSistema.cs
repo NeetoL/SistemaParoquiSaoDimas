@@ -1,3 +1,4 @@
+using SaoDimas.Dominio.ValueObjects;
 using SaoDimas.Dominio.Enums;
 using SaoDimas.Aplicacao.Dtos;
 using SaoDimas.Infraestrutura.Persistencia.Temporaria;
@@ -8,6 +9,7 @@ internal sealed class DocumentoSistema
     public List<RegistroParoquial> Gestao { get; set; } = [];
     public List<UsuarioParoquial> Usuarios { get; set; } = [];
     public List<AuditoriaParoquial> Auditoria { get; set; } = [];
+    public bool AniversariosOriginaisRecuperados { get; set; }
     public int Versao { get; set; } = 1;
     public int SequenciaDizimista { get; set; }
     public List<ComunidadeRegistro> Comunidades { get; set; } = [];
@@ -18,4 +20,4 @@ internal sealed class DocumentoSistema
 internal sealed record ComunidadeRegistro(int Id, string Nome, TipoComunidade Tipo, bool Ativa, int OrdemExibicao, DateTime CriadoEm, DateTime? AtualizadoEm);
 internal sealed record DizimistaRegistro(int Id, string Nome, string? Cpf, string? Telefone, int ComunidadeId,
     DateOnly DataEntrada, StatusDizimista Status, DateTime CriadoEm, DateTime? AtualizadoEm,
-    string? Endereco, string? Cep, string? Bairro, DateOnly? DataNascimento, string? CodigoOriginal = null);
+    string? Endereco, string? Cep, string? Bairro, Aniversario? DataNascimento, string? CodigoOriginal = null);

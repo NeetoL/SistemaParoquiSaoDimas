@@ -10,7 +10,7 @@ namespace SaoDimas.MVC.Models;
 /// Formulário de cadastro/edição. As regras de negócio são validadas no backend (domínio e aplicação);
 /// as anotações aqui cobrem apenas preenchimento obrigatório e formato.
 /// </summary>
-public sealed class DizimistaFormularioViewModel
+public sealed class DizimistaFormularioViewModel : IValidatableObject
 {
     [Required(ErrorMessage = "Informe o código do outro sistema.")]
     [StringLength(4, ErrorMessage = "O código deve ter no máximo 4 números.")]
@@ -39,8 +39,8 @@ public sealed class DizimistaFormularioViewModel
     public string? Cep { get; set; }
     [StringLength(100)]
     public string? Bairro { get; set; }
-    [Display(Name = "Data de nascimento")]
-    public DateOnly? DataNascimento { get; set; }
+    [Display(Name = "Aniversário (dia/mês)")]
+    public string? DataNascimento { get; set; }
 
     [Required(ErrorMessage = "Selecione uma comunidade.")]
     [Display(Name = "Comunidade")]
@@ -59,7 +59,7 @@ public sealed class DizimistaFormularioViewModel
 
     public static DizimistaFormularioViewModel De(DadosDizimista dados) => new()
     {
-        Endereco = dados.Endereco, Cep = dados.Cep, Bairro = dados.Bairro, DataNascimento = dados.DataNascimento,
+        Endereco = dados.Endereco, Cep = dados.Cep, Bairro = dados.Bairro, DataNascimento = dados.DataNascimento?.ToString(),
         Nome = dados.Nome,
         CodigoOriginal = dados.CodigoOriginal ?? string.Empty,
         Cpf = dados.Cpf,
@@ -72,6 +72,11 @@ public sealed class DizimistaFormularioViewModel
     /// <summary>
     /// Chamado somente após ModelState válido (campos obrigatórios preenchidos).
     /// </summary>
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        if (!string.IsNullOrWhiteSpace(DataNascimento) && !SaoDimas.Dominio.ValueObjects.Aniversario.TryParse(DataNascimento, out _))
+            yield return new ValidationResult("Informe um aniversário válido no formato dia/mês (ex.: 20/11).", [nameof(DataNascimento)]);
+    }
     public DadosDizimista ParaDados() =>
-        new(Nome, Cpf, Telefone, ComunidadeId!.Value, DataEntrada!.Value, Status!.Value, Endereco, Cep, Bairro, DataNascimento, CodigoOriginal);
+        new(Nome, Cpf, Telefone, ComunidadeId!.Value, DataEntrada!.Value, Status!.Value, Endereco, Cep, Bairro, string.IsNullOrWhiteSpace(DataNascimento) ? null : SaoDimas.Dominio.ValueObjects.Aniversario.Parse(DataNascimento), CodigoOriginal);
 }

@@ -32,7 +32,7 @@
             <div><dt>Endereço</dt><dd>@(dizimista.Endereco ?? "Não informado")</dd></div>
             <div><dt>CEP</dt><dd>@(dizimista.Cep is { Length: 8 } cep ? $"{cep[..5]}-{cep[5..]}" : "Não informado")</dd></div>
             <div><dt>Bairro</dt><dd>@(dizimista.Bairro ?? "Não informado")</dd></div>
-            <div><dt>Data de nascimento</dt><dd>@(dizimista.DataNascimento?.ToString("dd/MM/yyyy") ?? "Não informada")</dd></div>
+            <div><dt>Aniversário</dt><dd>@(dizimista.DataNascimento?.ToString() ?? "Não informada")</dd></div>
         </dl>
     </section>
 

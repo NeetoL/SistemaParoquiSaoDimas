@@ -1,3 +1,4 @@
+using SaoDimas.Dominio.ValueObjects;
 using SaoDimas.Dominio.Enums;
 
 namespace SaoDimas.Aplicacao.Dtos;
@@ -11,7 +12,7 @@ public sealed record DadosDizimista(
     string? Telefone,
     int ComunidadeId,
     DateOnly DataEntrada,
-    StatusDizimista Status, string? Endereco = null, string? Cep = null, string? Bairro = null, DateOnly? DataNascimento = null, string? CodigoOriginal = null);
+    StatusDizimista Status, string? Endereco = null, string? Cep = null, string? Bairro = null, Aniversario? DataNascimento = null, string? CodigoOriginal = null);
 
 public sealed record DizimistaResumoDto(
     int Id,
@@ -19,7 +20,7 @@ public sealed record DizimistaResumoDto(
     string Nome,
     string Comunidade,
     string? Telefone,
-    StatusDizimista Status, DateOnly? DataNascimento = null, string? Bairro = null, DateOnly? DataEntrada = null);
+    StatusDizimista Status, Aniversario? DataNascimento = null, string? Bairro = null, DateOnly? DataEntrada = null);
 
 public sealed record DizimistaDetalhesDto(
     int Id,
@@ -31,4 +32,4 @@ public sealed record DizimistaDetalhesDto(
     DateOnly DataEntrada,
     StatusDizimista Status,
     DateTime CriadoEm,
-    DateTime? AtualizadoEm, string? Endereco = null, string? Cep = null, string? Bairro = null, DateOnly? DataNascimento = null);
+    DateTime? AtualizadoEm, string? Endereco = null, string? Cep = null, string? Bairro = null, Aniversario? DataNascimento = null);
