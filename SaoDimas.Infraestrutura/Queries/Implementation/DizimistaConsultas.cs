@@ -34,6 +34,9 @@ internal sealed class DizimistaConsultas(SaoDimasDbContext contexto) : IDizimist
                 linha.Dizimista.Nome,
                 linha.Dizimista.Telefone,
                 linha.Dizimista.Status,
+                linha.Dizimista.DataNascimento,
+                linha.Dizimista.Bairro,
+                linha.Dizimista.DataEntrada,
                 linha.ComunidadeNome,
                 linha.ComunidadeTipo
             })
@@ -46,7 +49,7 @@ internal sealed class DizimistaConsultas(SaoDimasDbContext contexto) : IDizimist
                 linha.Nome,
                 Comunidade.FormatarNome(linha.ComunidadeTipo, linha.ComunidadeNome),
                 linha.Telefone?.Formatado,
-                linha.Status))
+                linha.Status, linha.DataNascimento, linha.Bairro, linha.DataEntrada))
             .ToList();
 
         return new PaginaResultado<DizimistaResumoDto>(itens, pagina, filtro.TamanhoPagina, total);

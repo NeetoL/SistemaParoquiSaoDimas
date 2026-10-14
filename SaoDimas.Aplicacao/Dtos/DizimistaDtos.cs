@@ -19,7 +19,7 @@ public sealed record DizimistaResumoDto(
     string Nome,
     string Comunidade,
     string? Telefone,
-    StatusDizimista Status);
+    StatusDizimista Status, DateOnly? DataNascimento = null, string? Bairro = null, DateOnly? DataEntrada = null);
 
 public sealed record DizimistaDetalhesDto(
     int Id,

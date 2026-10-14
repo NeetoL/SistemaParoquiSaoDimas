@@ -144,6 +144,9 @@ else
                     @{ ColunaOrdenavel("Nome", OrdenacaoDizimistas.Nome); }
                     @{ ColunaOrdenavel("Comunidade", OrdenacaoDizimistas.Comunidade); }
                     <th scope="col">Telefone</th>
+                    <th scope="col">Aniversário</th>
+                    <th scope="col">Bairro</th>
+                    <th scope="col">Entrada</th>
                     <th scope="col">Status</th>
                     <th scope="col"><span class="sr-only">Ações</span></th>
                 </tr>
@@ -160,6 +163,9 @@ else
                         <td><a asp-action="Detalhes" asp-route-id="@dizimista.Id" class="font-medium hover:text-primary-700">@dizimista.Nome</a></td>
                         <td>@dizimista.Comunidade</td>
                         <td class="whitespace-nowrap tabular-nums">@(dizimista.Telefone ?? "—")</td>
+                        <td class="whitespace-nowrap tabular-nums">@(dizimista.DataNascimento?.ToString("dd/MM") ?? "Não informado")</td>
+                        <td>@(string.IsNullOrWhiteSpace(dizimista.Bairro) ? "—" : dizimista.Bairro)</td>
+                        <td class="whitespace-nowrap tabular-nums">@(dizimista.DataEntrada?.ToString("dd/MM/yyyy") ?? "—")</td>
                         <td><partial name="_StatusDizimista" model="dizimista.Status" /></td>
                         <td>
                             <div class="table-acoes">

@@ -33,7 +33,7 @@ internal sealed class DizimistaJsonConsultas(SessaoSistemaJson sessao) : IDizimi
         };
         var pagina = Math.Min(filtro.Pagina, Math.Max(1, (int)Math.Ceiling(total / (double)filtro.TamanhoPagina)));
         var itens = ordenada.ThenBy(d => d.Id).Skip((pagina - 1) * filtro.TamanhoPagina).Take(filtro.TamanhoPagina)
-            .Select(d => new DizimistaResumoDto(d.Id, d.Codigo, d.Nome, Comunidade(d).NomeCompleto, d.Telefone?.Formatado, d.Status)).ToList();
+            .Select(d => new DizimistaResumoDto(d.Id, d.Codigo, d.Nome, Comunidade(d).NomeCompleto, d.Telefone?.Formatado, d.Status, d.DataNascimento, d.Bairro, d.DataEntrada)).ToList();
         return new(itens, pagina, filtro.TamanhoPagina, total);
     }
     public async Task<DizimistaDetalhesDto?> ObterDetalhesAsync(int id, CancellationToken ct)
